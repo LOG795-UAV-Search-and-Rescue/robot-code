@@ -21,7 +21,7 @@ type CMD_SPD_CTRL struct {
 	R float32 `json:"R"`
 }
 
-func (d *UGVDriver) SetSpeed(left, right float32) {
+func (d *UGVDriver) SetSpeed(left, right float32) error {
 	cmd := CMD_SPD_CTRL{
 		T: 1,
 		L: left,
@@ -31,10 +31,10 @@ func (d *UGVDriver) SetSpeed(left, right float32) {
 	jsonData, err := json.Marshal(cmd)
 	if err != nil {
 		log.Println("Error marshalling to JSON: ", err)
-		return
+		return err
 	}
 
-	d.sendCommand(jsonData)
+	return d.sendCommand(jsonData)
 }
 
 func (d *UGVDriver) SendJSON(cmd string) {
@@ -42,20 +42,26 @@ func (d *UGVDriver) SendJSON(cmd string) {
 	d.sendCommand([]byte(cmd))
 }
 
-func (d *UGVDriver) sendCommand(cmd []byte) {
-	log.Printf("Sent \"%s\".\n", cmd)
+func (d *UGVDriver) sendCommand(cmd []byte) error {
 	mu.Lock()
 	defer mu.Unlock()
 
+	log.Printf("Sending \"%s\".\n", cmd)
+
 	port, err := serial.Open(d.Device, &d.Mode)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error while sending command:", err)
+		return err
 	}
 	defer port.Close()
 
-	n, err := port.Write([]byte(cmd))
+	n, err := port.Write(append(cmd, '\n'))
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Error while sending command:", err)
+		return err
 	}
+
 	log.Printf("Sent %d bytes to serial port.\n", n)
+
+	return nil
 }
