@@ -93,8 +93,12 @@ func (driver *UGVDriver) SetModuleType(t uint8) error {
 }
 
 /* Retrieves IMU data. */
-func (driver *UGVDriver) GetIMUData() error {
-	return driver.SendJSON(`{"T":126}`)
+func (driver *UGVDriver) GetIMUData() (string, error) {
+	err := driver.SendJSON(`{"T":126}`)
+	if err != nil {
+		return "", err
+	}
+	return driver.read()
 }
 
 /* IMU calibration (reserved interface). */
@@ -103,8 +107,12 @@ func (driver *UGVDriver) CalibrationIMUStep() error {
 }
 
 /* Retrieves current IMU offsets (reserved interface). */
-func (driver *UGVDriver) GetIMUOffset() error {
-	return driver.SendJSON(`{"T":128}`)
+func (driver *UGVDriver) GetIMUOffset() (string, error) {
+	err := driver.SendJSON(`{"T":128}`)
+	if err != nil {
+		return "", err
+	}
+	return driver.read()
 }
 
 /* Sets the IMU offsets (reserved interface). */
@@ -113,8 +121,12 @@ func (driver *UGVDriver) SetIMUOffset(x, y, z int16) error {
 }
 
 /* Chassis information feedback. */
-func (driver *UGVDriver) GetBaseFeedback() error {
-	return driver.SendJSON(`{"T":130}`)
+func (driver *UGVDriver) GetBaseFeedback() (string, error) {
+	err := driver.SendJSON(`{"T":130}`)
+	if err != nil {
+		return "", err
+	}
+	return driver.read()
 }
 
 /* Enables continuous chassis information feedback. */
@@ -161,8 +173,12 @@ func (driver *UGVDriver) SetWiFiAPSTA(apSsid, apPass, staSsid, staPass string) e
 }
 
 /* Get Current WiFi Information. */
-func (driver *UGVDriver) GetWiFiInfo() error {
-	return driver.SendJSON(`{"T":405}`)
+func (driver *UGVDriver) GetWiFiInfo() (string, error) {
+	err := driver.SendJSON(`{"T":405}`)
+	if err != nil {
+		return "", err
+	}
+	return driver.read()
 }
 
 /* Create a New WiFi Configuration File Using Current Settings. */
@@ -258,13 +274,21 @@ func (driver *UGVDriver) SetSpeedRatio(left, right float32) error {
 }
 
 /* Retrieves the Current Speed Ratio settings. */
-func (driver *UGVDriver) GetSpeedRatio() error {
-	return driver.SendJSON(`{"T":139}`)
+func (driver *UGVDriver) GetSpeedRatio() (string, error) {
+	err := driver.SendJSON(`{"T":139}`)
+	if err != nil {
+		return "", err
+	}
+	return driver.read()
 }
 
 /* Scans the current task files. */
-func (driver *UGVDriver) ScanTasks() error {
-	return driver.SendJSON(`{"T":200}`)
+func (driver *UGVDriver) ScanTasks() (string, error) {
+	err := driver.SendJSON(`{"T":200}`)
+	if err != nil {
+		return "", err
+	}
+	return driver.read()
 }
 
 /* Creates a new task files. */
@@ -303,8 +327,12 @@ func (driver *UGVDriver) Reboot() error {
 }
 
 /* Retrieves the remaining space size in the FLASH memory. */
-func (driver *UGVDriver) GetFreeFlashSpace() error {
-	return driver.SendJSON(`{"T":601}`)
+func (driver *UGVDriver) GetFreeFlashSpace() (string, error) {
+	err := driver.SendJSON(`{"T":601}`)
+	if err != nil {
+		return "", err
+	}
+	return driver.read()
 }
 
 /* Outputs the current boot mission file. */
@@ -374,6 +402,7 @@ func (driver *UGVDriver) read() (string, error) {
 	defer port.Close()
 
 	buf := make([]byte, 256)
+	attempts := 0
 
 	for {
 		// Read data from the serial port
@@ -381,6 +410,10 @@ func (driver *UGVDriver) read() (string, error) {
 		if err != nil {
 			log.Printf("Error reading from serial port: %v", err)
 			time.Sleep(time.Millisecond * 100) // Wait before retrying
+			attempts++
+			if attempts > 3 {
+				return "", err // Give up after 3 attempts
+			}
 			continue
 		}
 

@@ -21,4 +21,10 @@ func main() {
 	driver.SetSpeed(0.2, 0.2)
 	time.Sleep(time.Second)
 	driver.SetSpeed(0, 0)
+
+	fdbk, err := driver.GetBaseFeedback()
+	if err != nil {
+		// Handle error
+	}
+	println(fdbk)
 }
