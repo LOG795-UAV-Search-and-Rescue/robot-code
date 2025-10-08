@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"go.bug.st/serial"
 )
@@ -18,12 +19,12 @@ type UGVDriver struct {
 
 /* Initialise the UGV control board. */
 func (driver *UGVDriver) Init() error {
-	driver.sendCommand([]byte(`{"T":142,"cmd":50}`))                           // set feedback interval
-	driver.sendCommand([]byte(`{"T":131,"cmd":1}`))                            // serial feedback flow on
-	driver.sendCommand([]byte(`{"T":143,"cmd":0}`))                            // serial echo off
-	driver.sendCommand([]byte(`{"T":4,"cmd":0}`))                              // select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
-	driver.sendCommand([]byte(`{"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"}`)) // the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
-	driver.sendCommand([]byte(`{"T":900,"main":2,"module":0}`))                // set product version
+	driver.SetFeedbackInterval(50)                                  // set feedback interval
+	driver.EnableFeedback(true)                                     // serial feedback flow on
+	driver.EnableEchoMode(false)                                    // serial echo off
+	driver.SetModuleType(0)                                         // select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
+	driver.SendJSON(`{"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"}`) // the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
+	driver.SendJSON(`{"T":900,"main":2,"module":0}`)                // set product version
 	return nil
 }
 
@@ -266,9 +267,73 @@ func (driver *UGVDriver) ScanTasks() error {
 	return driver.SendJSON(`{"T":200}`)
 }
 
-/* Executes the current task files. */
+/* Creates a new task files. */
 func (driver *UGVDriver) CreateTask(name, content string) error {
 	return driver.SendJSON(fmt.Sprintf(`{"T":201,"name":"%s","content":"%s"}`, name, content))
+}
+
+/* Reads a task files. */
+func (driver *UGVDriver) ReadTask(name string) error {
+	return driver.SendJSON(fmt.Sprintf(`{"T":202,"name":"%s"}`, name))
+}
+
+/* Deletes a task file. */
+func (driver *UGVDriver) DeleteTask(name string) error {
+	return driver.SendJSON(fmt.Sprintf(`{"T":203,"name":"%s"}`, name))
+}
+
+/* Adds a new instruction at the end of a task file. */
+func (driver *UGVDriver) AppendTaskLine(name, content string) error {
+	return driver.SendJSON(fmt.Sprintf(`{"T":204,"name":"%s","content":"%s"}`, name, content))
+}
+
+/* Insert a new instruction in the middle of a task file. */
+func (driver *UGVDriver) InsertInstruction(name, content string, lineNum uint16) error {
+	return driver.SendJSON(fmt.Sprintf(`{"T":205,"name":"%s","lineNum":%d,"content":"%s"}`, name, lineNum, content))
+}
+
+/* Replaces an instruction in a task file. */
+func (driver *UGVDriver) ReplaceInstruction(name, content string, lineNum uint16) error {
+	return driver.SendJSON(fmt.Sprintf(`{"T":206,"name":"%s","lineNum":%d,"content":"%s"}`, name, lineNum, content))
+}
+
+/* Reboot the ESP32. */
+func (driver *UGVDriver) Reboot() error {
+	return driver.SendJSON(`{"T":600}`)
+}
+
+/* Retrieves the remaining space size in the FLASH memory. */
+func (driver *UGVDriver) GetFreeFlashSpace() error {
+	return driver.SendJSON(`{"T":601}`)
+}
+
+/* Outputs the current boot mission file. */
+func (driver *UGVDriver) GetBootMission() (string, error) {
+	err := driver.SendJSON(`{"T":602}`)
+	if err != nil {
+		return "", err
+	}
+
+	return driver.read()
+}
+
+/* Resets the boot mission file to its default or a predetermined state. */
+func (driver *UGVDriver) ResetBootMission() error {
+	return driver.SendJSON(`{"T":603}`)
+}
+
+/* Clears the ESP32's Non-Volatile Storage (NVS) area. This command can be useful if there are issues with establishing a WiFi connection. It's recommended to reboot the ESP32 after executing this command. */
+func (driver *UGVDriver) ClearStorage() error {
+	return driver.SendJSON(`{"T":604}`)
+}
+
+/*
+Sets the mode for information feedback.
+
+When val is set to 1, it enables the printing of debug information. Setting val to 2 enables continuous feedback of chassis information. Setting val to 0 turns off feedback, meaning no information will be provided.
+*/
+func (driver *UGVDriver) SetFeedbackMode() error {
+	return driver.SendJSON(`{"T":605,"cmd":1}`)
 }
 
 func (driver *UGVDriver) sendCommand(cmd []byte) error {
@@ -279,7 +344,7 @@ func (driver *UGVDriver) sendCommand(cmd []byte) error {
 
 	port, err := serial.Open(driver.Device, &driver.Mode)
 	if err != nil {
-		log.Println("Error while sending command:", err)
+		log.Println("Error while opening port:", err)
 		return err
 	}
 	defer port.Close()
@@ -293,6 +358,38 @@ func (driver *UGVDriver) sendCommand(cmd []byte) error {
 	log.Printf("Sent %d bytes to serial port.\n", n)
 
 	return nil
+}
+
+func (driver *UGVDriver) read() (string, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	log.Printf(`Reading device "%s"...\n`, driver.Device)
+
+	port, err := serial.Open(driver.Device, &driver.Mode)
+	if err != nil {
+		log.Println("Error while opening setial port:", err)
+		return "", err
+	}
+	defer port.Close()
+
+	buf := make([]byte, 256)
+
+	for {
+		// Read data from the serial port
+		n, err := port.Read(buf)
+		if err != nil {
+			log.Printf("Error reading from serial port: %v", err)
+			time.Sleep(time.Millisecond * 100) // Wait before retrying
+			continue
+		}
+
+		if n > 0 {
+			receivedData := string(buf[:n])
+			log.Printf("Received: %s\n", receivedData)
+			return receivedData, nil
+		}
+	}
 }
 
 func bool2int(b bool) uint8 {
