@@ -39,7 +39,7 @@ func (driver *UGVDriver) ReadLoop() {
 		if n > 0 {
 			receivedData := FirstLine(buf[:n])
 			if json.Valid(receivedData) {
-				log.Printf("Read: %s\n", receivedData)
+				log.Printf("Read in loop: %s\n", receivedData)
 				driver.Callback(string(receivedData))
 				return
 			}

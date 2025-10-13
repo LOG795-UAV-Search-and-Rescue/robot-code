@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		println("Error getting base feedback:", err.Error())
 	}
-	println(fdbk)
+	println("Feedback:", fdbk)
 
 	for range 10 {
 		_, err := driver.GetIMUData()
