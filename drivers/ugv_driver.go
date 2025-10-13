@@ -36,7 +36,7 @@ func (driver *UGVDriver) ReadLoop() {
 			break
 		}
 		if n > 0 {
-			receivedData := string(buf[:n])
+			receivedData := FirstLine(buf[:n])
 			log.Printf("Received: %s", receivedData)
 			if driver.Callback != nil {
 				driver.Callback(receivedData)
@@ -445,11 +445,20 @@ func (driver *UGVDriver) read() (string, error) {
 		}
 
 		if n > 0 {
-			receivedData := string(buf[:n])
+			receivedData := FirstLine(buf[:n])
 			log.Printf("Read: %s\n", receivedData)
 			return receivedData, nil
 		}
 	}
+}
+
+func FirstLine(bytes []byte) string {
+	for i, char := range bytes {
+		if char == '\n' {
+			return string(bytes[:i])
+		}
+	}
+	return string(bytes)
 }
 
 func bool2int(b bool) uint8 {
