@@ -7,10 +7,6 @@ import (
 	"go.bug.st/serial"
 )
 
-func messageReceived(msg string) {
-	println("Received message:", msg)
-}
-
 func main() {
 	driver := &drivers.UGVDriver{
 		Device: "/dev/ttyTHS1",
@@ -20,7 +16,6 @@ func main() {
 			DataBits: 8,
 			StopBits: serial.OneStopBit,
 		},
-		Callback: messageReceived,
 	}
 
 	err := driver.Init()

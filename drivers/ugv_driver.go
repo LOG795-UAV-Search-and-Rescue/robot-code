@@ -4,20 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
 	"go.bug.st/serial"
 )
 
-/* OnMessageReceived is a callback function that is called when a message is received from the UGV control board. */
-type OnMessageReceived func(msg string)
-
 /* UGVDriver is a driver for the UGV control board. */
 type UGVDriver struct {
-	Device   string
-	Mode     serial.Mode
-	Callback OnMessageReceived
+	Device string
+	Mode   serial.Mode
 }
 
 var mu sync.Mutex
@@ -25,29 +22,6 @@ var mu sync.Mutex
 var port serial.Port
 
 const readIntervalMs = 50
-
-func (driver *UGVDriver) ReadLoop() {
-	buf := make([]byte, 512)
-	for {
-		mu.Lock()
-		n, err := port.Read(buf)
-		mu.Unlock()
-		if err != nil {
-			log.Printf("Read error: %v", err)
-			break
-		}
-		if n > 0 {
-			receivedData := LastLine(buf[:n])
-			if json.Valid(receivedData) {
-				log.Printf("Read in loop: %s\n", receivedData)
-				driver.Callback(string(receivedData))
-				return
-			}
-		}
-		time.Sleep(readIntervalMs * time.Millisecond)
-	}
-
-}
 
 /* Initialise the UGV control board. */
 func (driver *UGVDriver) Init() error {
@@ -58,8 +32,8 @@ func (driver *UGVDriver) Init() error {
 		return err
 	}
 
-	driver.SetFeedbackInterval(readIntervalMs * 2)                  // set feedback interval
-	driver.EnableFeedback(true)                                     // serial feedback flow on
+	// driver.SetFeedbackInterval(readIntervalMs * 2)               // set feedback interval
+	driver.EnableFeedback(false)                                    // serial feedback flow off
 	driver.EnableEchoMode(false)                                    // serial echo off
 	driver.SetModuleType(0)                                         // select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
 	driver.SendJSON(`{"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"}`) // the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
@@ -437,6 +411,8 @@ func (driver *UGVDriver) sendCommand(cmd []byte) error {
 
 func (driver *UGVDriver) read() (string, error) {
 	buf := make([]byte, 512)
+	var sb strings.Builder
+	sb.Grow(len(buf) * 3) // Preallocate buffer size
 	attempts := 0
 	for {
 		// Read data from the serial port
@@ -450,11 +426,11 @@ func (driver *UGVDriver) read() (string, error) {
 		}
 
 		if n > 0 {
+			sb.Write(buf[:n])
 			log.Println("Read n bytes:", n)
-			log.Println("Read buffer:", string(buf[:n]))
-
-			receivedData := LastLine(buf[:n])
-			if json.Valid(receivedData) {
+			log.Println("Read buffer:", sb.String())
+			receivedData := FirstLine(sb)
+			if json.Valid([]byte(receivedData)) {
 				log.Printf("Read: %s\n", receivedData)
 				return string(receivedData), nil
 			}
@@ -469,13 +445,14 @@ func (driver *UGVDriver) read() (string, error) {
 	}
 }
 
-func LastLine(bytes []byte) []byte {
-	for i := len(bytes) - 1; i >= 0; i-- {
-		if bytes[i] == '\n' {
-			return bytes[i+1:]
+func FirstLine(sb strings.Builder) string {
+	str := sb.String()
+	for i := 0; i < len(str); i++ {
+		if str[i] == '\n' {
+			return str[:i]
 		}
 	}
-	return bytes
+	return str
 }
 
 func bool2int(b bool) uint8 {
