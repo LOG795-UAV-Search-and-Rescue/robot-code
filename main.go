@@ -24,23 +24,16 @@ func main() {
 		println("Error initializing driver:", err.Error())
 	}
 
-	driver.SetSpeed(0.2, 0.2)
-	time.Sleep(100 * time.Millisecond)
-	driver.SetSpeed(0, 0)
-
-	fdbk, err := driver.GetBaseFeedback()
-	if err != nil {
-		println("Error getting base feedback:", err.Error())
-	}
-	println("Feedback:", fdbk)
-	time.Sleep(time.Millisecond * 50)
+	// driver.SetSpeed(0.2, 0.2)
+	// time.Sleep(100 * time.Millisecond)
+	// driver.SetSpeed(0, 0)
 
 	for range 10 {
-		_, err := driver.GetBaseFeedback()
+		data, err := driver.GetBaseFeedback()
 		if err != nil {
 			println("Error getting base feedback:", err.Error())
 		}
-		// println(data)
+		println(data)
 		time.Sleep(time.Second)
 	}
 }

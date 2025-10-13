@@ -393,7 +393,6 @@ func (driver *UGVDriver) sendCommand(cmd []byte) error {
 	mu.Lock()
 	_, err := port.Write(append(cmd, '\n'))
 	port.Drain()
-	port.ResetOutputBuffer()
 	mu.Unlock()
 	if err != nil {
 		log.Println("Error while sending command:", err)
@@ -420,17 +419,13 @@ func (driver *UGVDriver) read() (string, error) {
 
 		if n > 0 {
 			sb.Write(buf[:n])
-			log.Println("Read n bytes:", n)
-			log.Println("Read buffer:", sb.String())
+			// log.Println("Read n bytes:", n)
+			// log.Println("Read buffer:", sb.String())
 			receivedData := FetchLastJson(sb)
-			log.Println("Last line:", receivedData)
+			// log.Println("Last line:", receivedData)
 
-			isValidJSON := json.Valid([]byte(receivedData))
-			log.Println("Is valid JSON:", isValidJSON)
-			// Check if the received data is valid JSON
-
-			if isValidJSON {
-				log.Printf("Read: %s\n", receivedData)
+			if json.Valid([]byte(receivedData)) {
+				// log.Printf("Read: %s\n", receivedData)
 				return string(receivedData), nil
 			}
 
