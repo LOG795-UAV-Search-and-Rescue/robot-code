@@ -35,9 +35,9 @@ func main() {
 	println("Feedback:", fdbk)
 
 	for range 10 {
-		_, err := driver.GetIMUData()
+		_, err := driver.GetBaseFeedback()
 		if err != nil {
-			println("Error getting IMU data:", err.Error())
+			println("Error getting base feedback:", err.Error())
 		}
 		// println(data)
 		time.Sleep(time.Second)
