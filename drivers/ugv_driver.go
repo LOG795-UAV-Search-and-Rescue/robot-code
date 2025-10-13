@@ -412,7 +412,6 @@ func (driver *UGVDriver) sendCommand(cmd []byte) error {
 func (driver *UGVDriver) read() (string, error) {
 	buf := make([]byte, 512)
 	var sb strings.Builder
-	sb.Grow(len(buf) * 3) // Preallocate buffer size
 	attempts := 0
 	for {
 		// Read data from the serial port
@@ -429,7 +428,7 @@ func (driver *UGVDriver) read() (string, error) {
 			sb.Write(buf[:n])
 			log.Println("Read n bytes:", n)
 			log.Println("Read buffer:", sb.String())
-			receivedData := FirstLine(sb)
+			receivedData := LastLine(sb)
 			if json.Valid([]byte(receivedData)) {
 				log.Printf("Read: %s\n", receivedData)
 				return string(receivedData), nil
@@ -445,11 +444,11 @@ func (driver *UGVDriver) read() (string, error) {
 	}
 }
 
-func FirstLine(sb strings.Builder) string {
+func LastLine(sb strings.Builder) string {
 	str := sb.String()
-	for i := 0; i < len(str); i++ {
+	for i := len(str) - 1; i >= 0; i-- {
 		if str[i] == '\n' {
-			return str[:i]
+			return str[i+1:]
 		}
 	}
 	return str
