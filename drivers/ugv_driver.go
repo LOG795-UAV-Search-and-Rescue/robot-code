@@ -449,12 +449,11 @@ func LastLine(sb strings.Builder) string {
 	log.Println("Full string:", str)
 	log.Println("String length:", len(str))
 
-	for i := len(str) - 1; i >= 0; i-- {
-		if str[i] == '\n' {
-			return str[i+1:]
-		}
+	lines := strings.Split(str, "\n")
+	if len(lines) == 0 {
+		return str
 	}
-	return str
+	return lines[len(lines)-1]
 }
 
 func bool2int(b bool) uint8 {
