@@ -414,6 +414,8 @@ func (driver *UGVDriver) SetFeedbackMode() error {
 func (driver *UGVDriver) sendCommand(cmd []byte) error {
 	mu.Lock()
 	_, err := port.Write(append(cmd, '\n'))
+	port.Drain()
+	port.ResetOutputBuffer()
 	mu.Unlock()
 	if err != nil {
 		log.Println("Error while sending command:", err)
@@ -430,6 +432,7 @@ func (driver *UGVDriver) read() (string, error) {
 		// Read data from the serial port
 		mu.Lock()
 		n, err := port.Read(buf)
+		port.ResetInputBuffer()
 		mu.Unlock()
 		if err != nil {
 			log.Printf("Error reading from serial port: %v", err)
