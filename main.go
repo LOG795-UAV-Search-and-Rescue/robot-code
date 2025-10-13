@@ -28,13 +28,14 @@ func main() {
 
 	time.Sleep(100 * time.Millisecond)
 
-	data, err := driver.GetBaseFeedback()
-	if err != nil {
-		println("Error getting base feedback:", err.Error())
+	for range 10 {
+		data, err := driver.GetBaseFeedback()
+		if err != nil {
+			println("Error getting base feedback:", err.Error())
+		}
+		println(data)
+		time.Sleep(100 * time.Millisecond)
 	}
-	println(data)
-
-	time.Sleep(100 * time.Millisecond)
 
 	driver.SetSpeed(0, 0)
 
