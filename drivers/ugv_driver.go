@@ -36,7 +36,11 @@ func (driver *UGVDriver) ReadLoop() {
 			break
 		}
 		if n > 0 {
-			log.Printf("Received: %s", string(buf[:n]))
+			receivedData := string(buf[:n])
+			log.Printf("Received: %s", receivedData)
+			if driver.Callback != nil {
+				driver.Callback(receivedData)
+			}
 		}
 		time.Sleep(readIntervalMs * time.Millisecond)
 	}
@@ -408,17 +412,13 @@ func (driver *UGVDriver) SetFeedbackMode() error {
 }
 
 func (driver *UGVDriver) sendCommand(cmd []byte) error {
-	log.Printf("Sending %s.\n", cmd)
-
 	mu.Lock()
-	n, err := port.Write(append(cmd, '\n'))
+	_, err := port.Write(append(cmd, '\n'))
 	mu.Unlock()
 	if err != nil {
 		log.Println("Error while sending command:", err)
 		return err
 	}
-
-	log.Printf("Sent %d bytes to serial port.\n", n)
 
 	return nil
 }
@@ -443,7 +443,7 @@ func (driver *UGVDriver) read() (string, error) {
 
 		if n > 0 {
 			receivedData := string(buf[:n])
-			log.Printf("Received: %s\n", receivedData)
+			log.Printf("Read: %s\n", receivedData)
 			return receivedData, nil
 		}
 	}
