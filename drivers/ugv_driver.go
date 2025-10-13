@@ -9,22 +9,66 @@ import (
 	"go.bug.st/serial"
 )
 
-var mu sync.Mutex
+/* OnMessageReceived is a callback function that is called when a message is received from the UGV control board. */
+type OnMessageReceived func(msg string)
 
 /* UGVDriver is a driver for the UGV control board. */
 type UGVDriver struct {
-	Device string
-	Mode   serial.Mode
+	Device   string
+	Mode     serial.Mode
+	Callback OnMessageReceived
+}
+
+var mu sync.Mutex
+
+var port serial.Port
+
+const readIntervalMs = 50
+
+func (driver *UGVDriver) ReadLoop() {
+	buf := make([]byte, 128)
+	for {
+		mu.Lock()
+		n, err := port.Read(buf)
+		mu.Unlock()
+		if err != nil {
+			log.Printf("Read error: %v", err)
+			break
+		}
+		if n > 0 {
+			log.Printf("Received: %s", string(buf[:n]))
+		}
+		time.Sleep(readIntervalMs * time.Millisecond)
+	}
+
 }
 
 /* Initialise the UGV control board. */
 func (driver *UGVDriver) Init() error {
-	driver.SetFeedbackInterval(50)                                  // set feedback interval
+	var err error
+	port, err = serial.Open(driver.Device, &driver.Mode)
+	if err != nil {
+		log.Println("Error while opening serial port:", err)
+		return err
+	}
+
+	driver.SetFeedbackInterval(readIntervalMs * 2)                  // set feedback interval
 	driver.EnableFeedback(true)                                     // serial feedback flow on
 	driver.EnableEchoMode(false)                                    // serial echo off
 	driver.SetModuleType(0)                                         // select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
 	driver.SendJSON(`{"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"}`) // the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
 	driver.SendJSON(`{"T":900,"main":2,"module":0}`)                // set product version
+	return nil
+}
+
+func (driver *UGVDriver) Close() error {
+	if port == nil {
+		return nil
+	}
+	err := port.Close()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -341,7 +385,6 @@ func (driver *UGVDriver) GetBootMission() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return driver.read()
 }
 
@@ -365,19 +408,11 @@ func (driver *UGVDriver) SetFeedbackMode() error {
 }
 
 func (driver *UGVDriver) sendCommand(cmd []byte) error {
-	mu.Lock()
-	defer mu.Unlock()
-
 	log.Printf("Sending %s.\n", cmd)
 
-	port, err := serial.Open(driver.Device, &driver.Mode)
-	if err != nil {
-		log.Println("Error while opening port:", err)
-		return err
-	}
-	defer port.Close()
-
+	mu.Lock()
 	n, err := port.Write(append(cmd, '\n'))
+	mu.Unlock()
 	if err != nil {
 		log.Println("Error while sending command:", err)
 		return err
@@ -389,27 +424,16 @@ func (driver *UGVDriver) sendCommand(cmd []byte) error {
 }
 
 func (driver *UGVDriver) read() (string, error) {
-	mu.Lock()
-	defer mu.Unlock()
-
-	log.Printf(`Reading device "%s"...\n`, driver.Device)
-
-	port, err := serial.Open(driver.Device, &driver.Mode)
-	if err != nil {
-		log.Println("Error while opening setial port:", err)
-		return "", err
-	}
-	defer port.Close()
-
-	buf := make([]byte, 256)
+	buf := make([]byte, 128)
 	attempts := 0
-
 	for {
 		// Read data from the serial port
+		mu.Lock()
 		n, err := port.Read(buf)
+		mu.Unlock()
 		if err != nil {
 			log.Printf("Error reading from serial port: %v", err)
-			time.Sleep(time.Millisecond * 100) // Wait before retrying
+			time.Sleep(time.Millisecond * readIntervalMs) // Wait before retrying
 			attempts++
 			if attempts > 3 {
 				return "", err // Give up after 3 attempts

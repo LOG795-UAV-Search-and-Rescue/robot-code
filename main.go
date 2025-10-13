@@ -7,6 +7,10 @@ import (
 	"go.bug.st/serial"
 )
 
+func messageReceived(msg string) {
+	println("Received message:", msg)
+}
+
 func main() {
 	driver := &drivers.UGVDriver{
 		Device: "/dev/ttyTHS1",
@@ -16,15 +20,31 @@ func main() {
 			DataBits: 8,
 			StopBits: serial.OneStopBit,
 		},
+		Callback: messageReceived,
+	}
+
+	err := driver.Init()
+	defer driver.Close()
+	if err != nil {
+		println("Error initializing driver:", err)
 	}
 
 	driver.SetSpeed(0.2, 0.2)
-	time.Sleep(time.Second)
+	time.Sleep(100 * time.Millisecond)
 	driver.SetSpeed(0, 0)
 
 	fdbk, err := driver.GetBaseFeedback()
 	if err != nil {
-		// Handle error
+		println("Error getting base feedback:", err)
 	}
 	println(fdbk)
+
+	for range 10 {
+		data, err := driver.GetIMUData()
+		if err != nil {
+			println("Error getting IMU data:", err)
+		}
+		println(data)
+		time.Sleep(time.Second)
+	}
 }
