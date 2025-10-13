@@ -37,7 +37,7 @@ func (driver *UGVDriver) ReadLoop() {
 			break
 		}
 		if n > 0 {
-			receivedData := FirstLine(buf[:n])
+			receivedData := LastLine(buf[:n])
 			if json.Valid(receivedData) {
 				log.Printf("Read in loop: %s\n", receivedData)
 				driver.Callback(string(receivedData))
@@ -450,7 +450,10 @@ func (driver *UGVDriver) read() (string, error) {
 		}
 
 		if n > 0 {
-			receivedData := FirstLine(buf[:n])
+			log.Println("Read n bytes:", n)
+			log.Println("Read buffer:", string(buf[:n]))
+
+			receivedData := LastLine(buf[:n])
 			if json.Valid(receivedData) {
 				log.Printf("Read: %s\n", receivedData)
 				return string(receivedData), nil
@@ -466,10 +469,10 @@ func (driver *UGVDriver) read() (string, error) {
 	}
 }
 
-func FirstLine(bytes []byte) []byte {
-	for i, char := range bytes {
-		if char == '\n' {
-			return bytes[:i]
+func LastLine(bytes []byte) []byte {
+	for i := len(bytes) - 1; i >= 0; i-- {
+		if bytes[i] == '\n' {
+			return bytes[i+1:]
 		}
 	}
 	return bytes
