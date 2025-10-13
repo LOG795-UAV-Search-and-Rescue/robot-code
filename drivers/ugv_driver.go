@@ -39,6 +39,7 @@ func (driver *UGVDriver) Init() error {
 	driver.SetModuleType(0)                                         // select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
 	driver.SendJSON(`{"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"}`) // the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
 	driver.SendJSON(`{"T":900,"main":2,"module":0}`)                // set product version
+	driver.read()                                                   // clear buffers
 	return nil
 }
 
@@ -123,7 +124,6 @@ func (driver *UGVDriver) GetIMUData() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -138,7 +138,6 @@ func (driver *UGVDriver) GetIMUOffset() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -153,7 +152,6 @@ func (driver *UGVDriver) GetBaseFeedback() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -206,7 +204,6 @@ func (driver *UGVDriver) GetWiFiInfo() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -308,7 +305,6 @@ func (driver *UGVDriver) GetSpeedRatio() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -318,7 +314,6 @@ func (driver *UGVDriver) ScanTasks() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -363,7 +358,6 @@ func (driver *UGVDriver) GetFreeFlashSpace() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -373,7 +367,6 @@ func (driver *UGVDriver) GetBootMission() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
