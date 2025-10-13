@@ -148,6 +148,7 @@ func (driver *UGVDriver) GetIMUData() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -162,6 +163,7 @@ func (driver *UGVDriver) GetIMUOffset() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -176,6 +178,7 @@ func (driver *UGVDriver) GetBaseFeedback() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -228,6 +231,7 @@ func (driver *UGVDriver) GetWiFiInfo() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -329,6 +333,7 @@ func (driver *UGVDriver) GetSpeedRatio() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -338,6 +343,7 @@ func (driver *UGVDriver) ScanTasks() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -382,6 +388,7 @@ func (driver *UGVDriver) GetFreeFlashSpace() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
@@ -391,6 +398,7 @@ func (driver *UGVDriver) GetBootMission() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	time.Sleep(100 * time.Millisecond)
 	return driver.read()
 }
 
