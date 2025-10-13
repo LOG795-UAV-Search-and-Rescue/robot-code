@@ -26,7 +26,7 @@ func main() {
 	err := driver.Init()
 	defer driver.Close()
 	if err != nil {
-		println("Error initializing driver:", err)
+		println("Error initializing driver:", err.Error())
 	}
 
 	driver.SetSpeed(0.2, 0.2)
@@ -35,14 +35,14 @@ func main() {
 
 	fdbk, err := driver.GetBaseFeedback()
 	if err != nil {
-		println("Error getting base feedback:", err)
+		println("Error getting base feedback:", err.Error())
 	}
 	println(fdbk)
 
 	for range 10 {
 		_, err := driver.GetIMUData()
 		if err != nil {
-			println("Error getting IMU data:", err)
+			println("Error getting IMU data:", err.Error())
 		}
 		// println(data)
 		time.Sleep(time.Second)
