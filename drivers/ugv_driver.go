@@ -26,7 +26,7 @@ var port serial.Port
 const readIntervalMs = 50
 
 func (driver *UGVDriver) ReadLoop() {
-	buf := make([]byte, 128)
+	buf := make([]byte, 512)
 	for {
 		mu.Lock()
 		n, err := port.Read(buf)
@@ -424,7 +424,7 @@ func (driver *UGVDriver) sendCommand(cmd []byte) error {
 }
 
 func (driver *UGVDriver) read() (string, error) {
-	buf := make([]byte, 128)
+	buf := make([]byte, 512)
 	attempts := 0
 	for {
 		// Read data from the serial port
