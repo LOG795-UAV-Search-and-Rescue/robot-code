@@ -33,7 +33,7 @@ func (driver *UGVDriver) Init() error {
 		return err
 	}
 
-	// driver.SetFeedbackInterval(readIntervalMs * 2)               // set feedback interval
+	driver.SetFeedbackInterval(readIntervalMs)                      // set feedback interval
 	driver.EnableFeedback(false)                                    // serial feedback flow off
 	driver.EnableEchoMode(false)                                    // serial echo off
 	driver.SetModuleType(0)                                         // select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal

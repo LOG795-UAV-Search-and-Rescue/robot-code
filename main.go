@@ -33,6 +33,7 @@ func main() {
 		println("Error getting base feedback:", err.Error())
 	}
 	println("Feedback:", fdbk)
+	time.Sleep(time.Millisecond * 50)
 
 	for range 10 {
 		_, err := driver.GetBaseFeedback()
