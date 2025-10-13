@@ -40,11 +40,11 @@ func main() {
 	println(fdbk)
 
 	for range 10 {
-		data, err := driver.GetIMUData()
+		_, err := driver.GetIMUData()
 		if err != nil {
 			println("Error getting IMU data:", err)
 		}
-		println(data)
+		// println(data)
 		time.Sleep(time.Second)
 	}
 }

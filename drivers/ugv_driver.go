@@ -1,6 +1,7 @@
 package drivers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
@@ -37,9 +38,10 @@ func (driver *UGVDriver) ReadLoop() {
 		}
 		if n > 0 {
 			receivedData := FirstLine(buf[:n])
-			log.Printf("Received: %s", receivedData)
-			if driver.Callback != nil {
-				driver.Callback(receivedData)
+			if json.Valid(receivedData) {
+				log.Printf("Read: %s\n", receivedData)
+				driver.Callback(string(receivedData))
+				return
 			}
 		}
 		time.Sleep(readIntervalMs * time.Millisecond)
@@ -432,33 +434,37 @@ func (driver *UGVDriver) read() (string, error) {
 		// Read data from the serial port
 		mu.Lock()
 		n, err := port.Read(buf)
-		port.ResetInputBuffer()
 		mu.Unlock()
 		if err != nil {
 			log.Printf("Error reading from serial port: %v", err)
 			time.Sleep(time.Millisecond * readIntervalMs) // Wait before retrying
-			attempts++
-			if attempts > 3 {
-				return "", err // Give up after 3 attempts
-			}
 			continue
 		}
 
 		if n > 0 {
 			receivedData := FirstLine(buf[:n])
-			log.Printf("Read: %s\n", receivedData)
-			return receivedData, nil
+			if json.Valid(receivedData) {
+				log.Printf("Read: %s\n", receivedData)
+				return string(receivedData), nil
+			}
+
+			attempts++
+			if attempts > 3 {
+				return "", fmt.Errorf("failed to read json from serial port after 3 attempts")
+			}
+			time.Sleep(time.Millisecond * readIntervalMs) // Wait before retrying
+			continue
 		}
 	}
 }
 
-func FirstLine(bytes []byte) string {
+func FirstLine(bytes []byte) []byte {
 	for i, char := range bytes {
 		if char == '\n' {
-			return string(bytes[:i])
+			return bytes[:i]
 		}
 	}
-	return string(bytes)
+	return bytes
 }
 
 func bool2int(b bool) uint8 {
