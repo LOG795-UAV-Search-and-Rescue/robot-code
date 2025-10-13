@@ -429,7 +429,13 @@ func (driver *UGVDriver) read() (string, error) {
 			log.Println("Read n bytes:", n)
 			log.Println("Read buffer:", sb.String())
 			receivedData := LastLine(sb)
-			if json.Valid([]byte(receivedData)) {
+			log.Println("Last line:", receivedData)
+
+			isValidJSON := json.Valid([]byte(receivedData))
+			log.Println("Is valid JSON:", isValidJSON)
+			// Check if the received data is valid JSON
+
+			if isValidJSON {
 				log.Printf("Read: %s\n", receivedData)
 				return string(receivedData), nil
 			}
