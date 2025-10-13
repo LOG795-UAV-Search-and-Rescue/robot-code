@@ -446,6 +446,9 @@ func (driver *UGVDriver) read() (string, error) {
 
 func LastLine(sb strings.Builder) string {
 	str := sb.String()
+	log.Println("Full string:", str)
+	log.Println("String length:", len(str))
+
 	for i := len(str) - 1; i >= 0; i-- {
 		if str[i] == '\n' {
 			return str[i+1:]
