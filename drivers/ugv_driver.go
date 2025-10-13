@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -428,7 +429,7 @@ func (driver *UGVDriver) read() (string, error) {
 			sb.Write(buf[:n])
 			log.Println("Read n bytes:", n)
 			log.Println("Read buffer:", sb.String())
-			receivedData := LastLine(sb)
+			receivedData := FetchLastJson(sb)
 			log.Println("Last line:", receivedData)
 
 			isValidJSON := json.Valid([]byte(receivedData))
@@ -450,16 +451,14 @@ func (driver *UGVDriver) read() (string, error) {
 	}
 }
 
-func LastLine(sb strings.Builder) string {
-	str := sb.String()
-	log.Println("Full string:", str)
-	log.Println("String length:", len(str))
-
-	lines := strings.Split(str, "\n")
-	if len(lines) == 0 {
-		return str
+func FetchLastJson(sb strings.Builder) string {
+	// Find the last JSON object in the string builder
+	r := regexp.MustCompile(`{[^{}]*}`)
+	matches := r.FindAllString(sb.String(), -1)
+	if len(matches) == 0 {
+		return ""
 	}
-	return lines[len(lines)-1]
+	return matches[len(matches)-1]
 }
 
 func bool2int(b bool) uint8 {
