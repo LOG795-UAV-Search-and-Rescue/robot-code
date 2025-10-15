@@ -1,11 +1,16 @@
 package main
 
 import (
+	"math"
 	"time"
 
 	"github.com/ets-log795/robot-code/drivers"
 	"go.bug.st/serial"
 )
+
+func degToRad(deg float32) float32 {
+	return deg * (math.Pi / 180)
+}
 
 func main() {
 	driver := &drivers.UGVDriver{
@@ -24,27 +29,51 @@ func main() {
 		println("Error initializing driver:", err.Error())
 	}
 
-	driver.SetSpeed(0.2, 0.2)
-
-	time.Sleep(100 * time.Millisecond)
-
-	for range 10 {
-		data, err := driver.GetBaseFeedback()
-		if err != nil {
-			println("Error getting base feedback:", err.Error())
-		}
-		println(data)
-		time.Sleep(100 * time.Millisecond)
+	time.Sleep(10 * time.Second)
+	err = driver.SendGimbalControls(90, 0, 0.2, 0.2)
+	if err != nil {
+		println("Error sending gimbal controls:", err.Error())
 	}
 
-	driver.SetSpeed(0, 0)
+	time.Sleep(10 * time.Second)
 
-	for range 10 {
-		data, err := driver.GetBaseFeedback()
-		if err != nil {
-			println("Error getting base feedback:", err.Error())
-		}
-		println(data)
-		time.Sleep(time.Second)
+	const timeToTurn = 5 // seconds to turn 90 degrees
+
+	err = driver.SendROSControls(0, degToRad(90/float32(timeToTurn)))
+	if err != nil {
+		println("Error move controls:", err.Error())
 	}
+
+	time.Sleep(timeToTurn * time.Second)
+
+	err = driver.SendGimbalControls(0, 0, 0.2, 0.2)
+	if err != nil {
+		println("Error sending gimbal controls:", err.Error())
+	}
+
+	time.Sleep(10 * time.Second)
+
+	// driver.SetSpeed(0.2, 0.2)
+
+	// time.Sleep(100 * time.Millisecond)
+
+	// for range 10 {
+	// 	data, err := driver.GetBaseFeedback()
+	// 	if err != nil {
+	// 		println("Error getting base feedback:", err.Error())
+	// 	}
+	// 	println(data)
+	// 	time.Sleep(100 * time.Millisecond)
+	// }
+
+	// driver.SetSpeed(0, 0)
+
+	// for range 10 {
+	// 	data, err := driver.GetBaseFeedback()
+	// 	if err != nil {
+	// 		println("Error getting base feedback:", err.Error())
+	// 	}
+	// 	println(data)
+	// 	time.Sleep(time.Second)
+	// }
 }

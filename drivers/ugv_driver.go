@@ -34,12 +34,30 @@ func (driver *UGVDriver) Init() error {
 	}
 
 	driver.SetFeedbackInterval(readIntervalMs)                      // set feedback interval
+	time.Sleep(10 * time.Millisecond)                               // wait
 	driver.EnableFeedback(false)                                    // serial feedback flow off
+	time.Sleep(10 * time.Millisecond)                               // wait
 	driver.EnableEchoMode(false)                                    // serial echo off
+	time.Sleep(10 * time.Millisecond)                               // wait for the setting to take effect
 	driver.SetModuleType(0)                                         // select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
+	time.Sleep(10 * time.Millisecond)                               // wait
 	driver.SendJSON(`{"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"}`) // the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
+	time.Sleep(10 * time.Millisecond)                               // wait
 	driver.SendJSON(`{"T":900,"main":2,"module":0}`)                // set product version
-	driver.read()                                                   // clear buffers
+	time.Sleep(10 * time.Millisecond)                               // wait
+	driver.SetDefaultMotorPID()                                     // set default motor PID
+	time.Sleep(10 * time.Millisecond)                               // wait
+	driver.SendGimbalBasicControls(0, 0, 0, 0)                      // stop gimbal
+	time.Sleep(10 * time.Millisecond)                               // wait
+	driver.SetDefaultOLEDText()                                     // set default OLED text
+	time.Sleep(10 * time.Millisecond)                               // wait
+	driver.SetHeartBeatInterval(1000)                               // set heartbeat interval
+	time.Sleep(10 * time.Millisecond)                               // wait
+	driver.SetSpeedRatio(1, 1)                                      // set speed ratio to 1:1
+	time.Sleep(10 * time.Millisecond)                               // wait
+	driver.read()                                                   // clear read buffers
+	time.Sleep(10 * time.Millisecond)                               // wait
+	// driver.SetFeedbackMode()                                        // set feedback mode to debug
 	return nil
 }
 
@@ -82,7 +100,7 @@ Set ROS control (velocity closed-loop control).
 This command is for ROS-based host computer control of the chassis movement. x represents the linear velocity in m/s, which can be negative; z represents the angular velocity in rad/s, which can also be negative.
 */
 func (driver *UGVDriver) SendROSControls(x, z float32) error {
-	return driver.SendJSON(fmt.Sprintf(`{"T":13,"X":%.2f,"Z":%.2f}`, x, z))
+	return driver.SendJSON(fmt.Sprintf(`{"T":13,"X":%.8f,"Z":%.8f}`, x, z))
 }
 
 /* Set PID controller settings to default values. */
