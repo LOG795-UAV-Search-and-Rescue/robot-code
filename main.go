@@ -37,7 +37,7 @@ func main() {
 
 	time.Sleep(10 * time.Second)
 
-	const timeToTurn = 2 // seconds to turn 90 degrees
+	const timeToTurn = 5 // seconds to turn 90 degrees
 
 	err = driver.SendROSControls(0, degToRad(90)/float32(timeToTurn))
 	if err != nil {
