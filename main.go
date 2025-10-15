@@ -40,12 +40,12 @@ func main() {
 	const timeToTurn = 5 // seconds to turn 90 degrees
 
 	log.Println("Turning...")
-	err = driver.SendROSControls(0, degToRad(90))
+	err = driver.SendROSControls(0, degToRad(90)/2)
 	if err != nil {
 		log.Println("Error move controls:", err.Error())
 	}
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(4 * time.Second)
 	log.Println("Stopping...")
 	err = driver.SendROSControls(0, 0)
 	if err != nil {
@@ -54,18 +54,18 @@ func main() {
 
 	time.Sleep(timeToTurn * time.Second)
 
-	log.Println("Turning...")
-	err = driver.SendROSControls(0, degToRad(-90))
-	if err != nil {
-		log.Println("Error move controls:", err.Error())
-	}
+	// log.Println("Turning...")
+	// err = driver.SendROSControls(0, degToRad(-90)/2)
+	// if err != nil {
+	// 	log.Println("Error move controls:", err.Error())
+	// }
 
-	time.Sleep(2 * time.Second)
-	log.Println("Stopping...")
-	err = driver.SendROSControls(0, 0)
-	if err != nil {
-		log.Println("Error move controls:", err.Error())
-	}
+	// time.Sleep(4 * time.Second)
+	// log.Println("Stopping...")
+	// err = driver.SendROSControls(0, 0)
+	// if err != nil {
+	// 	log.Println("Error move controls:", err.Error())
+	// }
 
 	err = driver.SendGimbalBasicControls(0, 0, 0, 0)
 	if err != nil {
