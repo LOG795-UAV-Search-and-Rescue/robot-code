@@ -38,7 +38,7 @@ func main() {
 	time.Sleep(10 * time.Millisecond)
 
 	const speed = 2 // rad/s
-	timeToTurn := time.Duration((degToRad(90) / speed) * float32(time.Second.Nanoseconds()))
+	timeToTurn := time.Duration(2 * (degToRad(90) / speed) * float32(time.Second.Nanoseconds()))
 
 	log.Println("Turning...")
 	err = driver.SendROSControls(0, speed)
