@@ -46,6 +46,13 @@ func main() {
 
 	time.Sleep(timeToTurn * time.Second)
 
+	err = driver.SendROSControls(0, 0)
+	if err != nil {
+		println("Error move controls:", err.Error())
+	}
+
+	time.Sleep(timeToTurn * time.Second)
+
 	err = driver.SendGimbalControls(0, 0, 0.2, 0.2)
 	if err != nil {
 		println("Error sending gimbal controls:", err.Error())
