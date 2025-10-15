@@ -52,7 +52,7 @@ func main() {
 		log.Println("Error move controls:", err.Error())
 	}
 
-	time.Sleep(timeToTurn * time.Second)
+	time.Sleep(time.Millisecond * 200)
 
 	// log.Println("Turning...")
 	// err = driver.SendROSControls(0, degToRad(-90)/2)
