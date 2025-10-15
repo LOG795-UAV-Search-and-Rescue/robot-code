@@ -39,7 +39,7 @@ func main() {
 
 	const timeToTurn = 2 // seconds to turn 90 degrees
 
-	err = driver.SendROSControls(0, degToRad(90/float32(timeToTurn)))
+	err = driver.SendROSControls(0, degToRad(90)/float32(timeToTurn))
 	if err != nil {
 		println("Error move controls:", err.Error())
 	}
