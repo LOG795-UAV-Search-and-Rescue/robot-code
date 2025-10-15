@@ -51,7 +51,7 @@ func (driver *UGVDriver) Init() error {
 	time.Sleep(10 * time.Millisecond)                               // wait
 	driver.SetDefaultOLEDText()                                     // set default OLED text
 	time.Sleep(10 * time.Millisecond)                               // wait
-	driver.SetHeartBeatInterval(1000)                               // set heartbeat interval
+	driver.SetHeartBeatInterval(3000)                               // set heartbeat interval
 	time.Sleep(10 * time.Millisecond)                               // wait
 	driver.SetSpeedRatio(1, 1)                                      // set speed ratio to 1:1
 	time.Sleep(10 * time.Millisecond)                               // wait

@@ -30,13 +30,12 @@ func main() {
 		log.Println("Error initializing driver:", err.Error())
 	}
 
-	time.Sleep(10 * time.Second)
 	err = driver.SendGimbalBasicControls(90, 0, 0, 0)
 	if err != nil {
 		log.Println("Error sending gimbal controls:", err.Error())
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(10 * time.Millisecond)
 
 	const timeToTurn = 5 // seconds to turn 90 degrees
 
