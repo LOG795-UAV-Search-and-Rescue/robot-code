@@ -37,15 +37,16 @@ func main() {
 
 	time.Sleep(10 * time.Millisecond)
 
-	const timeToTurn = 5 // seconds to turn 90 degrees
+	const speed = 2 // rad/s
+	timeToTurn := time.Duration((degToRad(90) / speed) * float32(time.Second.Nanoseconds()))
 
 	log.Println("Turning...")
-	err = driver.SendROSControls(0, degToRad(90)*4)
+	err = driver.SendROSControls(0, speed)
 	if err != nil {
 		log.Println("Error move controls:", err.Error())
 	}
 
-	time.Sleep(time.Millisecond * 500)
+	time.Sleep(timeToTurn)
 	log.Println("Stopping...")
 	err = driver.SendROSControls(0, 0)
 	if err != nil {
