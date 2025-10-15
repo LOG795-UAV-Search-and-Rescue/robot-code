@@ -72,8 +72,6 @@ func main() {
 		log.Println("Error sending gimbal controls:", err.Error())
 	}
 
-	time.Sleep(10 * time.Second)
-
 	// driver.SetSpeed(0.2, 0.2)
 
 	// time.Sleep(100 * time.Millisecond)
