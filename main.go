@@ -30,7 +30,7 @@ func main() {
 	}
 
 	time.Sleep(10 * time.Second)
-	err = driver.SendGimbalControls(90, 0, 2, 2)
+	err = driver.SendGimbalControls(90, 0, 0, 0)
 	if err != nil {
 		println("Error sending gimbal controls:", err.Error())
 	}
@@ -53,7 +53,7 @@ func main() {
 
 	time.Sleep(timeToTurn * time.Second)
 
-	err = driver.SendGimbalControls(0, 0, 2, 2)
+	err = driver.SendGimbalControls(0, 0, 0, 0)
 	if err != nil {
 		println("Error sending gimbal controls:", err.Error())
 	}
