@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math"
 	"time"
 
@@ -26,36 +27,37 @@ func main() {
 	err := driver.Init()
 	defer driver.Close()
 	if err != nil {
-		println("Error initializing driver:", err.Error())
+		log.Println("Error initializing driver:", err.Error())
 	}
 
 	time.Sleep(10 * time.Second)
 	err = driver.SendGimbalBasicControls(90, 0, 0, 0)
 	if err != nil {
-		println("Error sending gimbal controls:", err.Error())
+		log.Println("Error sending gimbal controls:", err.Error())
 	}
 
 	time.Sleep(10 * time.Second)
 
 	const timeToTurn = 5 // seconds to turn 90 degrees
 
-	err = driver.SendROSControls(0, degToRad(90)/float32(timeToTurn))
+	log.Println("Turning...")
+	err = driver.SendROSControls(0, degToRad(90))
 	if err != nil {
-		println("Error move controls:", err.Error())
+		log.Println("Error move controls:", err.Error())
 	}
 
-	time.Sleep(2 * timeToTurn * time.Second)
-
+	time.Sleep(time.Second)
+	log.Println("Stopping...")
 	err = driver.SendROSControls(0, 0)
 	if err != nil {
-		println("Error move controls:", err.Error())
+		log.Println("Error move controls:", err.Error())
 	}
 
 	time.Sleep(timeToTurn * time.Second)
 
 	err = driver.SendGimbalBasicControls(0, 0, 0, 0)
 	if err != nil {
-		println("Error sending gimbal controls:", err.Error())
+		log.Println("Error sending gimbal controls:", err.Error())
 	}
 
 	time.Sleep(10 * time.Second)
