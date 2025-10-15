@@ -45,7 +45,7 @@ func main() {
 		log.Println("Error move controls:", err.Error())
 	}
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Millisecond * 1100)
 	log.Println("Stopping...")
 	err = driver.SendROSControls(0, 0)
 	if err != nil {
