@@ -186,77 +186,13 @@ class OpencvFuncs():
             input_frame = buffer.tobytes()
             return input_frame
 
-        # opencv funcs
-        if self.cv_mode != f['code']['cv_none']:
-            if not self.cv_event.is_set():
-                self.cv_event.set()
-                self.opencv_threading(input_frame)
-            try:
-                mask = self.overlay.astype(bool)
-                input_frame[mask] = self.overlay[mask]
-                cv2.addWeighted(self.overlay, 1, input_frame, 1, 0, input_frame)
-            except Exception as e:
-                    print("An error occurred:", e)
-        elif self.show_info_flag:
-            if time.time() - self.info_update_time > self.info_show_time:
-                self.show_info_flag = False
-            try:
-                self.overlay = input_frame.copy()
-                cv2.rectangle(self.overlay,  (round((self.info_scale-0.005)*640), round((0.33)*480)), 
-                                        (round(0.98*640), round((0.78)*480)), 
-                                        self.info_bg_color, -1)
-                cv2.addWeighted(self.overlay, 0.5, input_frame, 0.5, 0, input_frame)
-            except Exception as e:
-                print(f"[cv_ctrl.frame_process] error: {e}")
-
-            # info_deque.appendleft(time.time())
-            for i in range(0, len(self.info_deque)):
-                cv2.putText(input_frame, str(self.info_deque[i]['text']), 
-                            (round(self.info_scale*640), round(self.info_scale*640 - i * 20)), 
-                            cv2.FONT_HERSHEY_SIMPLEX, self.info_deque[i]['size'], self.info_deque[i]['color'], 1)
-
-        if self.show_base_info_flag:
-            for i in range(0, len(self.recv_deque)):
-                cv2.putText(input_frame, str(self.recv_deque[i]), 
-                        (round(0.05*640), round(0.1*640 + i * 13)), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.369, (255, 255, 255), 1)
-
+        
         # render osd
         input_frame = self.osd_render(input_frame)
 
-        # capture frame
-        if self.picture_capture_flag:
-            current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            photo_filename = f'{self.photo_path}photo_{current_time}.jpg'
-            try:
-                cv2.imwrite(photo_filename, input_frame)
-                self.picture_capture_flag = False
-                print(photo_filename)
-            except:
-                pass
-
-        # record video
-        if not self.set_video_record_flag and not self.video_record_status_flag:
-            pass
-        elif self.set_video_record_flag and not self.video_record_status_flag:
-            current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            video_filename = f'{self.video_path}video_{current_time}.mp4'
-            self.writer = imageio.get_writer(video_filename, fps=30, codec='libx264')
-            self.video_record_status_flag = True
-        elif self.set_video_record_flag and self.video_record_status_flag:
-            cv2.circle(input_frame, (15, 15), 5, (64, 64, 255), -1)
-            rgb_frame = cv2.cvtColor(input_frame, cv2.COLOR_BGRA2RGB)
-            rgb_frame_3d = np.expand_dims(rgb_frame, axis=0)
-            self.writer.append_data(rgb_frame_3d)
-            # self.writer.append_data(np.array(cv2.cvtColor(input_frame, cv2.COLOR_BGRA2RGB)))
-        elif not self.set_video_record_flag and self.video_record_status_flag:
-            self.video_record_status_flag = False
-            self.writer.close()
-
+        
         # frame scale
-        if self.scale_rate == 1:
-            pass
-        else:
+        if self.scale_rate != 1:
             img_height, img_width = input_frame.shape[:2]
             img_width_d2  = img_width/2
             img_height_d2 = img_height/2
@@ -270,8 +206,8 @@ class OpencvFuncs():
         try:
             ret, buffer = cv2.imencode('.jpg', input_frame, [int(cv2.IMWRITE_JPEG_QUALITY), self.video_quality])
             input_frame = buffer.tobytes()
-        except:
-            pass
+        except Exception as e:
+            print(f"[cv_ctrl.frame_process] unable to encode frame: {e}")
 
         # get fps
         self.fps_count += 1
