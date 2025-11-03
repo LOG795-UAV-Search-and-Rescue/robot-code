@@ -72,12 +72,13 @@ class Robot:
 
 async def send_image(websocket, robot):
     while True:
+        
+        await asyncio.sleep(0.033)  # Approx 30 FPS
         ret, frame = robot.frame_process()
         if not ret:
             print("[send_image] unable to process frame")
             continue
         
-        await asyncio.sleep(0.033)  # Approx 30 FPS
         await websocket.send(frame)
 
 async def receive_commands(websocket, robot):
