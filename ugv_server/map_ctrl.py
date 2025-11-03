@@ -52,14 +52,14 @@ class MapController():
         # render lidar data
         lidar_points = []
         for lidar_angle, lidar_distance in zip(self.base_ctrl.rl.lidar_angles_show, self.base_ctrl.rl.lidar_distances_show):
-            lidar_x = int(lidar_distance * np.cos(lidar_angle) * 0.05) + 320
-            lidar_y = int(lidar_distance * np.sin(lidar_angle) * 0.05) + 240
+            lidar_x = int(lidar_distance * np.cos(lidar_angle) * 0.05)
+            lidar_y = int(lidar_distance * np.sin(lidar_angle) * 0.05)
             lidar_points.append((lidar_x, lidar_y))
 
         
         fig, ax = plt.subplots()
-        ax.set_xlim(-640, 640)
-        ax.set_ylim(-480, 480)
+        ax.set_xlim(-320, 320)
+        ax.set_ylim(-240, 240)
         ax.set_title('Lidar Data')
         ax.set_xlabel('X Axis')
         ax.set_ylabel('Y Axis')
