@@ -30,7 +30,6 @@ class Robot:
     @steering.setter
     def steering(self, value):
         self._steering = value
-        self.update()
 
     @property
     def throttle(self):
@@ -39,14 +38,33 @@ class Robot:
     @throttle.setter
     def throttle(self, value):
         self._throttle = value
-        self.update()
+
+    @property
+    def head_pan(self):
+        return self._head_pan
+
+    @head_pan.setter
+    def head_pan(self, value):
+        self._head_pan = value
+
+    @property
+    def head_tilt(self):
+        return self._head_tilt
+
+    @head_tilt.setter
+    def head_tilt(self, value):
+        self._head_tilt = value
 
     def update(self):
         x = self._throttle * 0.75
         z = self._steering * math.pi * 2
         data = {"T":13,"X":x,"Z":z}
         # print("Sending control data:", data)
-        self.controller.base_json_ctrl(data)
+        self.controller.base_json_ctrl(data)    
+
+        data_head = {"T":133,"X":self._head_pan,"Y":self._head_tilt,"SPD":0,"ACC":0}
+        # print("Sending head data:", data_head)
+        self.controller.base_json_ctrl(data_head)
 
     def frame_process(self):
         return self.cvf.raw_frame()
@@ -70,6 +88,10 @@ async def receive_commands(websocket, robot):
         # json_car = message.get('Car', {})
         robot.steering = message.get('steering', 0.0)
         robot.throttle = message.get('throttle', 0.0)
+        robot.head_pan = message.get('headPanDeg', 0.0)
+        robot.head_tilt = message.get('headTiltDeg', 0.0)
+        robot.update()
+        #{'throttle': 0.0, 'steering': 0.0, 'headPanDeg': -88.79278564453125, 'headTiltDeg': 44.994110107421875, 'headRecenter': False}
 
 async def handle():
     robot = Robot('/dev/ttyTHS1', 115200)
