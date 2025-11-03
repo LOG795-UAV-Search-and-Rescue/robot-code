@@ -60,7 +60,7 @@ async def send_image(websocket, robot):
             continue
         
         await asyncio.sleep(0.033)  # Approx 30 FPS
-        await websocket.send(frame.tobytes())
+        await websocket.send(frame)
 
 async def receive_commands(websocket, robot):
     while True:
