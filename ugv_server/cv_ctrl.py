@@ -146,17 +146,18 @@ class OpencvFuncs():
         self.usb_camera_connected = True
 
         # usb camera init
-        self.__init_camera__()
+        self.video_device_index = 0
+        self.__init_camera__("/dev/video%d" % self.video_device_index)
 
-    def __init_camera__(self,):
+    def __init_camera__(self, device):
         Gst.init(None)
 
         # Pipeline string without emit-signals
         self.pipeline_string = (
-            "v4l2src device=/dev/video1 ! "
+            "v4l2src device=%s ! "
             "image/jpeg, width=%d, height=%d ! "
             "appsink name=mysink drop=True max-buffers=1 sync=True"
-        ) % (f['video']['default_res_w'], f['video']['default_res_h'])
+        ) % (device, f['video']['default_res_w'], f['video']['default_res_h'])
 
         self.pipeline = Gst.parse_launch(self.pipeline_string)
         self.appsink = self.pipeline.get_by_name("mysink")
@@ -167,6 +168,11 @@ class OpencvFuncs():
 
     def raw_frame(self):
         sample = self.appsink.emit('pull-sample')
+        # if sample null change pipeline to video0 or video1
+        if not sample:
+            self.video_device_index = 1 if self.video_device_index == 0 else 0
+            self.__init_camera__("/dev/video%d" % self.video_device_index)
+            sample = self.appsink.emit('pull-sample')
         if sample:
             buffer = sample.get_buffer()
             if buffer:
