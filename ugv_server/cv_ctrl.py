@@ -168,11 +168,13 @@ class OpencvFuncs():
     def raw_frame(self):
         sample = self.appsink.emit('pull-sample')
         if sample:
+            print("Got frame sample")
             buffer = sample.get_buffer()
             if buffer:
+                print("Got frame buffer")
                 success, map_info = buffer.map(Gst.MapFlags.READ)
                 if success:
-                    return success, map_info.data # <-- Your single JPEG frame data
+                    return success, map_info.data
         return False, None
 
     def frame_process(self):

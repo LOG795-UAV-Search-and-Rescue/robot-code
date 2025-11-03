@@ -74,7 +74,7 @@ async def send_image(websocket, robot):
     while True:
         ret, frame = robot.frame_process()
         if not ret:
-            #print("[send_image] unable to process frame")
+            print("[send_image] unable to process frame")
             continue
         
         await asyncio.sleep(0.033)  # Approx 30 FPS
@@ -91,7 +91,6 @@ async def receive_commands(websocket, robot):
         robot.head_pan = message.get('headPanDeg', 0.0)
         robot.head_tilt = message.get('headTiltDeg', 0.0)
         robot.update()
-        #{'throttle': 0.0, 'steering': 0.0, 'headPanDeg': -88.79278564453125, 'headTiltDeg': 44.994110107421875, 'headRecenter': False}
 
 async def handle():
     robot = Robot('/dev/ttyTHS1', 115200)
