@@ -165,13 +165,7 @@ class OpencvFuncs():
         pipeline.set_state(Gst.State.PLAYING)
 
         # Wait for pipeline to start
-        Gst.Element.get_state(pipeline, None, None, Gst.CLOCK_TIME_NONE)
-        self.camera = cv2.VideoCapture(
-                "v4l2src device=/dev/video1 ! 'image/jpeg, width=(int)%d, height=(int)%d' !  ! appsink max-buffers=1 drop=True"
-                % (
-                        capture_width,
-                        capture_height
-                ), cv2.CAP_GSTREAMER)
+        status, state, pending = pipeline.get_state(Gst.CLOCK_TIME_NONE) 
 
     def raw_frame(self):
         sample = self.appsink.pull_sample()
