@@ -165,9 +165,8 @@ class OpencvFuncs():
         status, state, pending = self.pipeline.get_state(Gst.CLOCK_TIME_NONE) 
 
     def raw_frame(self):
-        sample = self.appsink.pull_sample()
-        if sample:
-            buffer = sample.get_buffer()
+        buffer = self.appsink.pull_buffer()
+        if buffer:
             success, map_info = buffer.map(Gst.MapFlags.READ)
             if success:
                 return success, map_info.data # <-- Your single JPEG frame data
