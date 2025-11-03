@@ -202,6 +202,7 @@ def delete_video():
 
 
 # Video WebRTC
+
 # Function to manage connections
 def manage_connections(pc_id, pc):
     if len(active_pcs) >= MAX_CONNECTIONS:
@@ -261,160 +262,6 @@ def set_version(input_main, input_module):
     elif input_module == 2:
         cvf.info_update("PT", (0,255,255), 0.36)
 
-# main cmdline for robot ctrl
-def cmdline_ctrl(args_string):
-    if not args_string:
-        return
-    args = args_string.split()
-    # base -c {"T":1,"L":0.5,"R":0.5}
-    if args[0] == 'base':
-        if args[1] == '-c' or args[1] == '--cmd':
-            base.base_json_ctrl(json.loads(args[2]))
-        elif args[1] == '-r' or args[1] == '--recv':
-            if args[2] == 'on':
-                cvf.show_recv_info(True)
-            else:
-                cvf.show_recv_info(False)
-
-    elif args[0] == 'audio':
-        if args[1] == '-s' or args[1] == '--say':
-            audio_ctrl.play_speech_thread(' '.join(args[2:]))
-        elif args[1] == '-v' or args[1] == '--volume':
-            audio_ctrl.set_audio_volume(args[2])
-        elif args[1] == '-p' or args[1] == '--play_file':
-            audio_ctrl.play_file(args[2])
-
-    elif args[0] == 'send':
-        if args[1] == '-a' or args[1] == '--add':
-            if args[2] == '-b' or args[2] == '--broadcast':
-                base.base_json_ctrl({"T":303,"mac":"FF:FF:FF:FF:FF:FF"})
-            else:
-                base.base_json_ctrl({"T":303,"mac":args[2]})
-        elif args[1] == '-rm' or args[1] == '--remove':
-            if args[2] == '-b' or args[2] == '--broadcast':
-                base.base_json_ctrl({"T":304,"mac":"FF:FF:FF:FF:FF:FF"})
-            else:
-                base.base_json_ctrl({"T":304,"mac":args[2]})
-        elif args[1] == '-b' or args[1] == '--broadcast':
-            base.base_json_ctrl({"T":306,"mac":"FF:FF:FF:FF:FF:FF","dev":0,"b":0,"s":0,"e":0,"h":0,"cmd":3,"megs":' '.join(args[2:])})
-        elif args[1] == '-g' or args[1] == '--group':
-            base.base_json_ctrl({"T":305,"dev":0,"b":0,"s":0,"e":0,"h":0,"cmd":3,"megs":' '.join(args[2:])})
-        else:
-            base.base_json_ctrl({"T":306,"mac":args[1],"dev":0,"b":0,"s":0,"e":0,"h":0,"cmd":3,"megs":' '.join(args[2:])})
-
-    elif args[0] == 'cv':
-        if args[1] == '-r' or args[1] == '--range':
-            try:
-                lower_trimmed = args[2].strip("[]")
-                lower_nums = [int(lower_num) for lower_num in lower_trimmed.split(",")]
-                if all(0 <= num <= 255 for num in lower_nums):
-                    pass
-                else:
-                    return
-            except Exception:
-                return
-            try:
-                upper_trimmed = args[3].strip("[]")
-                upper_nums = [int(upper_num) for upper_num in upper_trimmed.split(",")]
-                if all(0 <= num <= 255 for num in upper_nums):
-                    pass
-                else:
-                    return
-            except Exception:
-                return
-            cvf.change_target_color(lower_nums, upper_nums)
-        elif args[1] == '-s' or args[1] == '--select':
-            cvf.selet_target_color(args[2])
-
-    elif args[0] == 'video' or args[0] == 'v':
-        if args[1] == '-q' or args[1] == '--quality':
-            try:
-                int(args[2])
-            except Exception:
-                return
-            cvf.set_video_quality(int(args[2]))
-
-    elif args[0] == 'line':
-        if args[1] == '-r' or args[1] == '--range':
-            try:
-                lower_trimmed = args[2].strip("[]")
-                lower_nums = [int(lower_num) for lower_num in lower_trimmed.split(",")]
-                if all(0 <= num <= 255 for num in lower_nums):
-                    pass
-                else:
-                    return
-            except Exception:
-                return
-            try:
-                upper_trimmed = args[3].strip("[]")
-                upper_nums = [int(upper_num) for upper_num in upper_trimmed.split(",")]
-                if all(0 <= num <= 255 for num in upper_nums):
-                    pass
-                else:
-                    return
-            except Exception:
-                return
-            cvf.change_line_color(lower_nums, upper_nums)
-        elif args[1] == '-s' or args[1] == '--set':
-            if len(args) != 9:
-                return
-            try:
-                for i in range(2,9):
-                    float(args[i])
-            except Exception:
-                return
-            # line -s 0.7 0.8 1.6 0.0006 0.6 0.4 0.2
-            cvf.set_line_track_args(float(args[2]), float(args[3]), float(args[4]), float(args[5]), float(args[6]), float(args[7]), float(args[8]))
-
-    elif args[0] == 'track':
-        cvf.set_pt_track_args(args[1], args[2])
-
-    elif args[0] == 'timelapse':
-        if args[1] == '-s' or args[1] == '--start':
-            if len(args) != 6:
-                return
-            try:
-                move_speed = float(args[2])
-                move_time  = float(args[3])
-                t_interval = float(args[4])
-                loop_times = int(args[5])
-            except Exception:
-                return
-            cvf.timelapse(move_speed, move_time, t_interval, loop_times)
-        elif args[1] == '-e' or args[1] == '--end' or args[1] == '--stop':
-            cvf.mission_stop()
-
-    elif args[0] == 'p':
-        main_type = int(args[1][0])
-        module_type = int(args[1][1])
-        set_version(main_type, module_type)
-
-    # s 20
-    elif args[0] == 's':
-        main_type = int(args[1][0])
-        module_type = int(args[1][1])
-        if main_type == 1:
-            f['base_config']['robot_name'] = "RaspRover"
-            f['args_config']['max_speed'] = 0.65
-            f['args_config']['slow_speed'] = 0.3
-        elif main_type == 2:
-            f['base_config']['robot_name'] = "UGV Rover"
-            f['args_config']['max_speed'] = 1.3
-            f['args_config']['slow_speed'] = 0.2
-        elif main_type == 3:
-            f['base_config']['robot_name'] = "UGV Beast"
-            f['args_config']['max_speed'] = 1.0
-            f['args_config']['slow_speed'] = 0.2
-        f['base_config']['main_type'] = main_type
-        f['base_config']['module_type'] = module_type
-        with open(CONFIG_PATH, "w") as yaml_file:
-            yaml.dump(f, yaml_file)
-        set_version(main_type, module_type)
-
-    elif args[0] == 'test':
-        cvf.update_base_data({"T":1003,"mac":1111,"megs":"helllo aaaaaaaa"})
-
-
 # Route to handle the offer request
 @app.route('/offer', methods=['POST'])
 def offer_route():
@@ -424,17 +271,6 @@ def offer_route():
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/send_command', methods=['POST'])
-def handle_command():
-    command = request.form['command']
-    print("Received command:", command)
-    cvf.info_update("CMD:" + command, (0,255,255), 0.36)
-    try:
-        cmdline_ctrl(command)
-    except Exception as e:
-        print(f"[app.handle_command] error: {e}")
-    return jsonify({"status": "success", "message": "Command received"})
 
 @app.route('/getAudioFiles', methods=['GET'])
 def get_audio_files():
@@ -468,9 +304,8 @@ def audio_stop():
 
 
 
-
-
 # Web socket
+
 # info update single
 def update_data_websocket_single():
     # {'T':1001,'L':0,'R':0,'r':0,'p':0,'v': 11,'pan':0,'tilt':0}
@@ -566,17 +401,25 @@ def handle_socket_cmd(message):
 
 # commandline on boot
 def cmd_on_boot():
+    module_type = f['base_config']['module_type']
+    speed_ratio_l = f['base_config']['speed_ratio_l']
+    speed_ratio_r = f['base_config']['speed_ratio_r']
     cmd_list = [
-        'base -c {"T":142,"cmd":50}',   # set feedback interval
-        'base -c {"T":131,"cmd":1}',    # serial feedback flow on
-        'base -c {"T":143,"cmd":0}',    # serial echo off
-        'base -c {{"T":4,"cmd":{}}}'.format(f['base_config']['module_type']),      # select the module - 0:None 1:RoArm-M2-S 2:Gimbal
-        'base -c {"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"}',  # the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
-        'send -a -b'    # add broadcast mac addr to peer
+        {"T":142,"cmd":50},                             # set feedback interval
+        {"T":131,"cmd":0},                              # serial feedback flow off
+        {"T":143,"cmd":0},                              # serial echo off
+        {"T":4,"cmd":module_type},                      # select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
+        {"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"},   # the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
+        {"T":2,"P":20,"I":2000,"D":0,"L":255},          # base pid params
+        {"T":133,"X":0,"Y":0,"SPD":0,"ACC":0},          # set inital position for gimbal
+        {"T":-3},                                       # set default OLED text
+        {"T":136,"cmd":3000},                           # set heartbeat interval
+        {"T":138,"L":speed_ratio_l,"R":speed_ratio_r}   # set speed ratio
     ]
-    print('base -c {{"T":4,"cmd":{}}}'.format(f['base_config']['module_type']))
+
+    print('{"T":4,"cmd":%d}' % module_type)
     for i in range(0, len(cmd_list)):
-        cmdline_ctrl(cmd_list[i])
+        base.base_json_ctrl(cmd_list[i])
         cvf.info_update(cmd_list[i], (0,255,255), 0.36)
     set_version(f['base_config']['main_type'], f['base_config']['module_type'])
 

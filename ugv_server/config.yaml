@@ -14,12 +14,14 @@ audio_config:
   speed_rate: 180
 base_config:
   add_osd: true
+  use_lidar: true
   extra_sensor: false
   main_type: 2
   module_type: 0
   robot_name: UGV Rover
   sbc_version: 0.93
-  use_lidar: true
+  speed_ratio_l: 1.0
+  speed_ratio_r: 1.0
 cmd_config:
   cmd_arm_ctrl_ui: 144
   cmd_gimbal_base_ctrl: 141

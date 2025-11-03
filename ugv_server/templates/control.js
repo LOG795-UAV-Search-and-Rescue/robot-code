@@ -1382,9 +1382,3 @@ document.getElementById('stopButton').addEventListener('click', function() {
         console.error('Error:', error);
     });
 });
-
-document.getElementById('open_jupyter').addEventListener('click', function() {
-    var currentUrl = window.location.href;
-    var newUrl = currentUrl.replace(/:(\d+)/, ':8888');
-    window.open(newUrl, '_blank');
-});
