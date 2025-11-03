@@ -153,7 +153,7 @@ class OpencvFuncs():
 
         # Pipeline string without emit-signals
         self.pipeline_string = (
-            "v4l2src device=/dev/video0 ! "
+            "v4l2src ! "
             "image/jpeg, width=%d, height=%d ! "
             "appsink name=mysink drop=True max-buffers=1 sync=True"
         ) % (f['video']['default_res_w'], f['video']['default_res_h'])

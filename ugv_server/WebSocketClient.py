@@ -56,15 +56,15 @@ class Robot:
         self._head_tilt = value
 
     def update(self):
+        data_head = {"T":133,"X":self._head_pan,"Y":self._head_tilt,"SPD":0,"ACC":0}
+        # print("Sending head data:", data_head)
+        self.controller.base_json_ctrl(data_head)
+
         x = self._throttle * 0.75
         z = self._steering * math.pi * 2
         data = {"T":13,"X":x,"Z":z}
         # print("Sending control data:", data)
         self.controller.base_json_ctrl(data)    
-
-        data_head = {"T":133,"X":self._head_pan,"Y":self._head_tilt,"SPD":0,"ACC":0}
-        # print("Sending head data:", data_head)
-        self.controller.base_json_ctrl(data_head)
 
     def frame_process(self):
         return self.cvf.raw_frame()
