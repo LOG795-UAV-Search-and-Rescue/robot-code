@@ -5,8 +5,8 @@ import io
 
 
 class MapController():
-    def __init__(self, base_controller: BaseController):
-        self.base_controller = base_controller
+    def __init__(self, base_ctrl: BaseController):
+        self.base_ctrl = base_ctrl
         self.pos_x = 0.0
         self.pos_y = 0.0
         self.orientation = 0.0
