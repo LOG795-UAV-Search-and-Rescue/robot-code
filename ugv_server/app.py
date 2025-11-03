@@ -39,6 +39,7 @@ from flask import Flask, render_template, Response, request, jsonify, redirect, 
 from flask_socketio import SocketIO, emit
 from werkzeug.utils import secure_filename
 from aiortc import RTCPeerConnection, RTCSessionDescription
+import socketserver
 import json
 import uuid
 import asyncio
@@ -70,6 +71,10 @@ pcs = set()
 
 # Camera funcs
 cvf = cv_ctrl.OpencvFuncs(thisPath, base)
+
+# Map funcs
+from map import MapController
+map_controller = MapController(base)
 
 cmd_actions = {
     f['code']['zoom_x1']: lambda: cvf.scale_ctrl(1),
@@ -140,6 +145,16 @@ def generate_frames():
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n') 
         except Exception as e:
             print("An [generate_frames] error occurred:", e)
+
+# Function to generate map frames
+def generate_map_frames():
+    while True:
+        frame = map_controller.create_graph_as_bytes()
+        try:
+            yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n') 
+        except Exception as e:
+            print("An [generate_map_frames] error occurred:", e)
 
 
 
@@ -271,6 +286,11 @@ def offer_route():
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# Route to stream map frames
+@app.route('/map_feed')
+def map_feed():
+    return Response(generate_map_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/getAudioFiles', methods=['GET'])
 def get_audio_files():
@@ -424,6 +444,60 @@ def cmd_on_boot():
     set_version(f['base_config']['main_type'], f['base_config']['module_type'])
 
 
+class UDPHandler(socketserver.BaseRequestHandler):
+    def __init__(self, request, client_address, server):
+        super().__init__(request, client_address, server)
+        self.quality_min = f['upd_control']['quality_min']
+        self.drone_x = 0.0
+        self.drone_y = 0.0
+        self.last_good_x = 0.0
+        self.last_good_y = 0.0
+        self.quality = self.quality_min
+        self.pending_reset = False
+        self.under_drone = False
+
+    def handle(self):
+        data = self.request[0].strip()
+        self.receive_movement_data(data)
+        print(f"Received UDP data: {data.decode()}")
+    
+    def receive_movement_data(self, data):
+        last_line = data.split("\n")[-1].strip()
+        parts = last_line.split(",")
+        # Expected format: ts, x, y, q, reset_flag
+        if len(parts) < 5:
+            return
+        
+        ts, xd, yd, q, reset_flag = parts[:5]
+        x, y = float(xd), float(yd)
+        q = float(q)
+        # --- Quality filtering ---
+        if q < self.quality_min:
+            # Here we will ignore the positions with bad quality BECAUSE THEYRE NOT GOOD POSITIONS TO WE SAVE THE LAST GOOD POSITIONS
+            print(f"[WARN] Low quality ({q:.0f}) → ignoring noisy data.")
+            self.drone_x, self.drone_y = self.last_good_x, self.last_good_y
+            self.quality = q
+            return
+        else:
+            # Otherwise we will store the new good positions here
+            self.drone_x, self.drone_y, self.quality = x, y, q
+            self.last_good_x, self.last_good_y = x, y
+
+        # --- When quality is =0 the drone resets its position to 0,0, we have to detect it and then send the good positionning the rover ---
+        if reset_flag == "1" and not self.pending_reset:
+            print("[INFO] Drone reset detected — keeping rover on last valid position.")
+            self.pending_reset = True
+            self.under_drone = False
+            # the rover will go the last good position recorded before the reset
+            self.last_drone_x, self.last_drone_y = self.last_good_x, self.last_good_y
+
+def start_udp_server():
+    # Replace with your desired UDP port
+    udp_port = f['upd_control']['udp_port']
+    with socketserver.UDPServer(("0.0.0.0", udp_port), UDPHandler) as server:
+        print(f"UDP server listening on port {udp_port}")
+        server.serve_forever()
+
 
 # Run the Flask app
 if __name__ == "__main__":
@@ -458,6 +532,11 @@ if __name__ == "__main__":
     # lights off
     base.lights_ctrl(0, 0)
     cmd_on_boot()
+
+    # start UDP server in a separate thread
+    udp_thread = threading.Thread(target=start_udp_server)
+    udp_thread.daemon = True # Allow the thread to exit when the main program exits
+    udp_thread.start()
 
     # run the main web app
     socketio.run(app, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)
