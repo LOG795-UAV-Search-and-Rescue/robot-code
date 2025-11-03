@@ -153,14 +153,14 @@ class OpencvFuncs():
 
         # Pipeline string without emit-signals
         self.pipeline_string = (
-            "v4l2src device=/dev/video1 ! "
+            "v4l2src device=/dev/video0 ! "
             "image/jpeg, width=%d, height=%d ! "
             "appsink name=mysink drop=True max-buffers=1 sync=True"
         ) % (f['video']['default_res_w'], f['video']['default_res_h'])
 
         self.pipeline = Gst.parse_launch(self.pipeline_string)
         self.appsink = self.pipeline.get_by_name("mysink")
-        self.pipeline.set_state(Gst.State.PLAYING)
+        ret = self.pipeline.set_state(Gst.State.PLAYING)
 
         # Wait for pipeline to start
         status, state, pending = self.pipeline.get_state(Gst.CLOCK_TIME_NONE) 
