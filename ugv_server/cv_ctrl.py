@@ -166,7 +166,7 @@ class OpencvFuncs():
         status, state, pending = self.pipeline.get_state(Gst.CLOCK_TIME_NONE) 
 
     def raw_frame(self):
-        sample = self.appsink.emit('pull-sample')
+        sample = self.appsink.pull_sample()
         if sample:
             print("Got frame sample")
             buffer = sample.get_buffer()
