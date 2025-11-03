@@ -16,6 +16,9 @@ thisPath = os.path.dirname(curpath)
 with open(thisPath + '/config.yaml', 'r') as yaml_file:
     f = yaml.safe_load(yaml_file)
 
+import gi
+gi.require_version('Gst', '1.0')
+from gi.repository import Gst, GObject
 
 class OpencvFuncs():
     """docstring for OpencvFuncs"""
@@ -148,24 +151,44 @@ class OpencvFuncs():
             capture_width=1920,
             capture_height=1080
         ):
+        Gst.init(None)
 
+        # Pipeline string without emit-signals
+        pipeline_string = (
+            "v4l2src device=/dev/video1 ! "
+            "image/jpeg, width=%d, height=%d ! "
+            "appsink name=mysink drop=True max-buffers=1 sync=True"
+        ) % (f['video']['default_res_w'], f['video']['default_res_h'])
+
+        pipeline = Gst.parse_launch(pipeline_string)
+        appsink = pipeline.get_by_name("mysink")
+        pipeline.set_state(Gst.State.PLAYING)
+
+        # Wait for pipeline to start
+        Gst.Element.get_state(pipeline, None, None, Gst.CLOCK_TIME_NONE)
         self.camera = cv2.VideoCapture(
-                "gst-launch-1.0 v4l2src device=/dev/video1 ! 'image/jpeg, width=(int)%d, height=(int)%d' ! appsink max-buffers=1 drop=True"
+                "v4l2src device=/dev/video1 ! 'image/jpeg, width=(int)%d, height=(int)%d' !  ! appsink max-buffers=1 drop=True"
                 % (
                         capture_width,
                         capture_height
                 ), cv2.CAP_GSTREAMER)
 
     def raw_frame(self):
-        return self.camera.read()
+        sample = self.appsink.pull_sample()
+        if sample:
+            buffer = sample.get_buffer()
+            success, map_info = buffer.map(Gst.MapFlags.READ)
+            if success:
+                return success, map_info.data # <-- Your single JPEG frame data
+        return False, None
 
     def frame_process(self):
         try:
-            success, input_frame = self.raw_frame()
+            success, jpeg_bytes = self.raw_frame()
             if not success:
-                self.camera.release()
-                time.sleep(1)
-                self.__init_camera__(f['video']['default_res_w'], f['video']['default_res_h'], 30, 0)
+                raise Exception("Camera frame read failed")
+            np_arr = np.frombuffer(jpeg_bytes, np.uint8)
+            input_frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         except Exception as e:
             print(f"[cv_ctrl.frame_process] error: {e}")
             input_frame = 255 * np.ones((480, 640, 3), dtype=np.uint8)
