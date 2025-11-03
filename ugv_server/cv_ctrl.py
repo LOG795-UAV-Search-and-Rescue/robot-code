@@ -18,7 +18,8 @@ with open(thisPath + '/config.yaml', 'r') as yaml_file:
 
 import gi
 gi.require_version('Gst', '1.0')
-from gi.repository import Gst, GObject
+gi.require_version('GstApp', '1.0')
+from gi.repository import Gst, GstApp
 
 class OpencvFuncs():
     """docstring for OpencvFuncs"""
@@ -165,11 +166,13 @@ class OpencvFuncs():
         status, state, pending = self.pipeline.get_state(Gst.CLOCK_TIME_NONE) 
 
     def raw_frame(self):
-        buffer = self.appsink.pull_buffer()
-        if buffer:
-            success, map_info = buffer.map(Gst.MapFlags.READ)
-            if success:
-                return success, map_info.data # <-- Your single JPEG frame data
+        sample = self.appsink.emit('pull-sample')
+        if sample:
+            buffer = sample.get_buffer()
+            if buffer:
+                success, map_info = buffer.map(Gst.MapFlags.READ)
+                if success:
+                    return success, map_info.data # <-- Your single JPEG frame data
         return False, None
 
     def frame_process(self):
