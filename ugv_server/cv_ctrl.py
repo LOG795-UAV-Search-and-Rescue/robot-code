@@ -145,27 +145,24 @@ class OpencvFuncs():
         self.usb_camera_connected = True
 
         # usb camera init
-        self.__init_camera__(f['video']['default_res_w'], f['video']['default_res_h'])
+        self.__init_camera__()
 
-    def __init_camera__(self,
-            capture_width=1920,
-            capture_height=1080
-        ):
+    def __init_camera__(self,):
         Gst.init(None)
 
         # Pipeline string without emit-signals
-        pipeline_string = (
+        self.pipeline_string = (
             "v4l2src device=/dev/video1 ! "
             "image/jpeg, width=%d, height=%d ! "
             "appsink name=mysink drop=True max-buffers=1 sync=True"
         ) % (f['video']['default_res_w'], f['video']['default_res_h'])
 
-        pipeline = Gst.parse_launch(pipeline_string)
-        appsink = pipeline.get_by_name("mysink")
-        pipeline.set_state(Gst.State.PLAYING)
+        self.pipeline = Gst.parse_launch(self.pipeline_string)
+        self.appsink = self.pipeline.get_by_name("mysink")
+        self.pipeline.set_state(Gst.State.PLAYING)
 
         # Wait for pipeline to start
-        status, state, pending = pipeline.get_state(Gst.CLOCK_TIME_NONE) 
+        status, state, pending = self.pipeline.get_state(Gst.CLOCK_TIME_NONE) 
 
     def raw_frame(self):
         sample = self.appsink.pull_sample()
