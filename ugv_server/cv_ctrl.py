@@ -175,7 +175,7 @@ class OpencvFuncs():
             if not success:
                 self.camera.release()
                 time.sleep(1)
-                self.camera = cv2.VideoCapture(0)
+                self.__init_camera__(f['video']['default_res_w'], f['video']['default_res_h'], 30, 0)
         except Exception as e:
             print(f"[cv_ctrl.frame_process] error: {e}")
             input_frame = 255 * np.ones((480, 640, 3), dtype=np.uint8)
