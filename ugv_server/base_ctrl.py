@@ -68,10 +68,10 @@ class ReadLine:
 			return
 		try:
 			while True:
-				self.HEADER = self.lidar_ser.read(1)
-				if self.HEADER == b'\x54':
+				self.head = self.lidar_ser.read(1)
+				if self.head == b'\x54':
 					# Read the rest of the data
-					data = self.HEADER + self.lidar_ser.read(46)
+					data = self.head + self.lidar_ser.read(46)
 					hex_data = [int(hex(byte), 16) for byte in data]
 					start_angle = self.parse_lidar_frame(hex_data)
 					if self.last_start_angle > start_angle:
