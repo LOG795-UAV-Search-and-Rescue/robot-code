@@ -406,7 +406,7 @@ def cmd_on_boot():
     speed_ratio_r = f['base_config']['speed_ratio_r']
     cmd_list = [
         {"T":142,"cmd":50},                             # set feedback interval
-        {"T":131,"cmd":0},                              # serial feedback flow off
+        {"T":131,"cmd":1},                              # serial feedback flow off
         {"T":143,"cmd":0},                              # serial echo off
         {"T":4,"cmd":module_type},                      # select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
         {"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"},   # the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.

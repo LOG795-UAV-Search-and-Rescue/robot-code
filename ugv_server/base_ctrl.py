@@ -55,12 +55,23 @@ class ReadLine:
 		self.s.reset_input_buffer()
 
 	def parse_lidar_frame(self, data):
+		# header = data[0]
+		# verlen = data[1]
+		# speed  = data[3] << 8 | data[2]
 		start_angle = (data[5] << 8 | data[4]) * 0.01
+		# print(start)
+		# end_angle = (data[43] << 8 | data[42]) * 0.01
 		for i in range(0, self.ANGLE_PER_FRAME):
 			offset = 6 + i * 3
 			distance = data[offset+1] << 8 | data[offset]
+			confidence = data[offset+2]
+			# lidar_angles.append(np.radians(start_angle + i * 0.167))
 			self.lidar_angles.append(np.radians(start_angle + i * 0.83333 + 180))
+			# lidar_angles.append(np.radians(start_angle + end_angle))
 			self.lidar_distances.append(distance)
+		# end_angle = (data[43] << 8 | data[42]) * 0.01
+		# timestamp = data[45] << 8 | data[44]
+		# crc = data[46]
 		return start_angle
 
 	def lidar_data_recv(self):
@@ -68,10 +79,10 @@ class ReadLine:
 			return
 		try:
 			while True:
-				self.head = self.lidar_ser.read(1)
-				if self.head == b'\x54':
+				self.header = self.lidar_ser.read(1)
+				if self.header == b'\x54':
 					# Read the rest of the data
-					data = self.head + self.lidar_ser.read(46)
+					data = self.header + self.lidar_ser.read(46)
 					hex_data = [int(hex(byte), 16) for byte in data]
 					start_angle = self.parse_lidar_frame(hex_data)
 					if self.last_start_angle > start_angle:
