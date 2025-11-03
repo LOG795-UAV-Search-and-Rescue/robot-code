@@ -49,14 +49,17 @@ class Robot:
         self.controller.base_json_ctrl(data)
 
     def frame_process(self):
-        frame = self.cvf.frame_process()
-        return frame
+        return self.cvf.raw_frame()
 
 
 async def send_image(websocket, robot):
     while True:
+        ret, frame = robot.frame_process()
+        if not ret:
+            continue
+        
         await asyncio.sleep(0.033)  # Approx 30 FPS
-        await websocket.send(robot.frame_process())
+        await websocket.send(frame.tobytes())
 
 async def receive_commands(websocket, robot):
     while True:
