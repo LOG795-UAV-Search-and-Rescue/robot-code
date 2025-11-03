@@ -48,8 +48,33 @@ class MapController():
 
         return image_bytes
 
-    def graph_frame_generate(self):
-        pass
+    def lidar_frame_generate(self):
+        # render lidar data
+        lidar_points = []
+        for lidar_angle, lidar_distance in zip(self.base_ctrl.rl.lidar_angles_show, self.base_ctrl.rl.lidar_distances_show):
+            lidar_x = int(lidar_distance * np.cos(lidar_angle) * 0.05) + 320
+            lidar_y = int(lidar_distance * np.sin(lidar_angle) * 0.05) + 240
+            lidar_points.append((lidar_x, lidar_y))
+
+        
+        fig, ax = plt.subplots()
+        ax.set_xlim(-640, 640)
+        ax.set_ylim(-480, 480)
+        ax.set_title('Lidar Data')
+        ax.set_xlabel('X Axis')
+        ax.set_ylabel('Y Axis')
+        ax.grid(True)
+        for point in lidar_points:
+            ax.plot(point[0], point[1], 'bo', markersize=2)
+
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format='jpeg')
+        plt.close(fig)
+        buffer.seek(0)
+        lidar_graph = buffer.read()
+        buffer.close()
+
+        return lidar_graph
 
     
     

@@ -73,8 +73,8 @@ pcs = set()
 cvf = cv_ctrl.OpencvFuncs(thisPath, base)
 
 # Map funcs
-from map import MapController
-map_controller = MapController(base)
+from ugv_server.map_ctrl import MapController
+map_ctrl = MapController(base)
 
 cmd_actions = {
     f['code']['zoom_x1']: lambda: cvf.scale_ctrl(1),
@@ -149,7 +149,8 @@ def generate_frames():
 # Function to generate map frames
 def generate_map_frames():
     while True:
-        frame = map_controller.create_graph_as_bytes()
+        # frame = map_ctrl.create_graph_as_bytes()
+        frame = map_ctrl.lidar_frame_generate()
         try:
             yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n') 
@@ -288,7 +289,7 @@ def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # Route to stream map frames
-@app.route('/map_feed')
+@app.route('/mapfeed')
 def map_feed():
     return Response(generate_map_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
