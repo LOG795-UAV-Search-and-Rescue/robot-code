@@ -73,7 +73,7 @@ pcs = set()
 cvf = cv_ctrl.OpencvFuncs(thisPath, base)
 
 # Map funcs
-from ugv_server.map_ctrl import MapController
+from map_ctrl import MapController
 map_ctrl = MapController(base)
 
 cmd_actions = {
