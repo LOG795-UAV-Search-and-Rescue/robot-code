@@ -420,7 +420,7 @@ def cmd_on_boot():
     print('{"T":4,"cmd":%d}' % module_type)
     for i in range(0, len(cmd_list)):
         base.base_json_ctrl(cmd_list[i])
-        cvf.info_update(cmd_list[i], (0,255,255), 0.36)
+        cvf.info_update(json.dumps(cmd_list[i]), (0,255,255), 0.36)
     set_version(f['base_config']['main_type'], f['base_config']['module_type'])
 
 
