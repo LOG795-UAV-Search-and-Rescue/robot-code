@@ -142,24 +142,18 @@ class OpencvFuncs():
         self.usb_camera_connected = True
 
         # usb camera init
-        self.__init_camera__(f['video']['default_res_w'], f['video']['default_res_h'], 30)
+        self.__init_camera__(f['video']['default_res_w'], f['video']['default_res_h'])
 
     def __init_camera__(self,
             capture_width=1920,
-            capture_height=1080,
-            framerate=30,
+            capture_height=1080
         ):
 
         self.camera = cv2.VideoCapture(
-                "v4l2src device=/dev/video1 ! "
-                "'video/x-raw, width=(int)%d, height=(int)%d, "
-                "format=(string)NV12, framerate=(fraction)%d/1' ! "
-                "videoconvert ! "
-                "video/x-raw, format=YUY2 ! jpegenc ! appsink max-buffers=1 drop=True"
+                "gst-launch-1.0 v4l2src device=/dev/video1 ! 'image/jpeg, width=(int)%d, height=(int)%d' ! appsink max-buffers=1 drop=True"
                 % (
                         capture_width,
-                        capture_height,
-                        framerate,
+                        capture_height
                 ), cv2.CAP_GSTREAMER)
 
     def raw_frame(self):
