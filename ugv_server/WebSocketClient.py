@@ -45,7 +45,7 @@ class Robot:
 
     @head_pan.setter
     def head_pan(self, value):
-        self._head_pan = -value
+        self._head_pan = value
 
     @property
     def head_tilt(self):
@@ -53,7 +53,7 @@ class Robot:
 
     @head_tilt.setter
     def head_tilt(self, value):
-        self._head_tilt = value
+        self._head_tilt = -value
 
     def update(self):
         data_head = {"T":133,"X":self._head_pan,"Y":self._head_tilt,"SPD":0,"ACC":0}
