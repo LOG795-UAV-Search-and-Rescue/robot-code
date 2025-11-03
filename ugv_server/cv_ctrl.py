@@ -152,8 +152,8 @@ class OpencvFuncs():
 
         self.camera = cv2.VideoCapture(
                 "v4l2src device=/dev/video1 ! "
-                "video/x-raw, width=(int)%d, height=(int)%d, "
-                "format=(string)NV12, framerate=(fraction)%d/1 ! "
+                "'video/x-raw, width=(int)%d, height=(int)%d, "
+                "format=(string)NV12, framerate=(fraction)%d/1' ! "
                 "videoconvert ! "
                 "video/x-raw, format=YUY2 ! jpegenc ! appsink max-buffers=1 drop=True"
                 % (
