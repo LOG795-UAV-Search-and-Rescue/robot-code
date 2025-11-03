@@ -45,7 +45,7 @@ class Robot:
 
     @head_pan.setter
     def head_pan(self, value):
-        self._head_pan = value
+        self._head_pan = -value
 
     @property
     def head_tilt(self):
