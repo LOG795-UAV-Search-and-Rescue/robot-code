@@ -22,6 +22,9 @@ class Robot:
         self.cvf = cv_ctrl.OpencvFuncs(thisPath, self.controller)
         self._steering = 0.0
         self._throttle = 0.0
+        self._head_pan = 0.0
+        self._head_tilt = 0.0
+        self._head_move = False
 
     @property
     def steering(self):
