@@ -272,6 +272,8 @@ class MapController():
         self.orientation = 0.0
 
     def update(self, data):
+        if data is None:
+            return self.pos_x, self.pos_y, self.orientation
         x, y, theta = self.pos_estimator.update(data)
         self.pos_x = x
         self.pos_y = y
