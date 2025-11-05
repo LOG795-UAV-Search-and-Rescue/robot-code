@@ -76,7 +76,7 @@ async def send_image(websocket, robot):
         await asyncio.sleep(0.033)  # Approx 30 FPS
         ret, frame = robot.frame_process()
         if not ret:
-            print("[send_image] unable to process frame")
+            # print("[send_image] unable to process frame")
             continue
         
         await websocket.send(frame)
@@ -85,7 +85,7 @@ async def receive_commands(websocket, robot):
     while True:
         # print("Waiting for command...")
         message = json.loads(await websocket.recv())
-        print("Received message:", message)
+        # print("Received message:", message)
         # json_car = message.get('Car', {})
         robot.steering = message.get('steering', 0.0)
         robot.throttle = message.get('throttle', 0.0)
