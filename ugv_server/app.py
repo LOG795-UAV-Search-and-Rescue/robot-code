@@ -401,7 +401,7 @@ def base_data_loop():
 def handle_socket_json(json):
     try:
         base.base_json_ctrl(json)
-        print("Received JSON data via WebSocket:", json)
+        # print("Received JSON data via WebSocket:", json)
     except Exception as e:
         print("Error handling JSON data:", e)
         return
