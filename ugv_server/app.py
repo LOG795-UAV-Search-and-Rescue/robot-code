@@ -157,7 +157,15 @@ def generate_map_frames():
         except Exception as e:
             print("An [generate_map_frames] error occurred:", e)
 
-
+# Function to generate position frames
+def generate_pos_frames():
+    while True:
+        frame = map_ctrl.create_pose_graph()
+        try:
+            yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n') 
+        except Exception as e:
+            print("An [generate_pos_frames] error occurred:", e)
 
 # Route to render the HTML template
 @app.route('/')
@@ -292,6 +300,11 @@ def video_feed():
 @app.route('/map_feed')
 def map_feed():
     return Response(generate_map_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# Route to stream position frames
+@app.route('/pos_feed')
+def pos_feed():
+    return Response(generate_pos_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/getAudioFiles', methods=['GET'])
 def get_audio_files():
