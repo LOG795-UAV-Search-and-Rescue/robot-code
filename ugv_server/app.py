@@ -381,7 +381,9 @@ def base_data_loop():
     sensor_interval = 1
     sensor_read_time = time.time()
     while True:
-        cvf.update_base_data(base.feedback_data())
+        data = base.feedback_data()
+        print("Base data:", data)
+        cvf.update_base_data(data)
 
         # get sensor data
         if base.extra_sensor:
