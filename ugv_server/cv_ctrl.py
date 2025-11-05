@@ -152,6 +152,8 @@ class OpencvFuncs():
     def __init_camera__(self, device):
         Gst.init(None)
 
+        print(f"[cv_ctrl] init camera: {device}")
+
         # Pipeline string without emit-signals
         self.pipeline_string = (
             "v4l2src device=%s ! "
