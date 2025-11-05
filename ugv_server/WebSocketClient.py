@@ -55,10 +55,22 @@ class Robot:
     def head_tilt(self, value):
         self._head_tilt = -value
 
+    @property
+    def head_move(self):
+        return self._head_move
+
+    @head_move.setter
+    def head_move(self, value: bool):
+        if value != self._head_move:
+            data_head = {"T":133,"X":0,"Y":0,"SPD":0,"ACC":0}
+            self.controller.base_json_ctrl(data_head)
+        self._head_move = value
+
     def update(self):
-        data_head = {"T":133,"X":self._head_pan,"Y":self._head_tilt,"SPD":0,"ACC":0}
-        # print("Sending head data:", data_head)
-        self.controller.base_json_ctrl(data_head)
+        if(self._head_move):
+            data_head = {"T":133,"X":self._head_pan,"Y":self._head_tilt,"SPD":0,"ACC":0}
+            # print("Sending head data:", data_head)
+            self.controller.base_json_ctrl(data_head)
 
         x = self._throttle * 0.75
         z = self._steering * math.pi * 2
@@ -83,14 +95,13 @@ async def send_image(websocket, robot):
 
 async def receive_commands(websocket, robot):
     while True:
-        # print("Waiting for command...")
         message = json.loads(await websocket.recv())
         # print("Received message:", message)
-        # json_car = message.get('Car', {})
         robot.steering = message.get('steering', 0.0)
         robot.throttle = message.get('throttle', 0.0)
         robot.head_pan = message.get('headPanDeg', 0.0)
         robot.head_tilt = message.get('headTiltDeg', 0.0)
+        robot.head_move = message.get('headMove', False)
         robot.update()
 
 async def handle():
