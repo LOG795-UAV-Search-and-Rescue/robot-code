@@ -110,5 +110,8 @@ video:
 upd_control:
   udp_port: 5005
   quality_min: 30
+map_config:
+  wheelbase_m: 0.172
+  alpha: 0.95
 
 

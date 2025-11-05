@@ -382,7 +382,8 @@ def base_data_loop():
     sensor_read_time = time.time()
     while True:
         data = base.feedback_data()
-        print("Base data:", data)
+        # print("Base data:", data)
+        map_ctrl.update(data)
         cvf.update_base_data(data)
 
         # get sensor data
