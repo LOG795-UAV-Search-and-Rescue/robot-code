@@ -175,7 +175,7 @@ class OpencvFuncs():
     def raw_frame(self):
         sample = self.appsink.emit('pull-sample')
         # if sample null change pipeline to video0 or video1
-        if not sample:
+        while not sample:
             self.__next_camera__()
             sample = self.appsink.emit('pull-sample')
         if sample:
