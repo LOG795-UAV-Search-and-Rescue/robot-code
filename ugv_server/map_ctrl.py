@@ -47,7 +47,7 @@ class OdometryFuser:
         :return: A tuple of the new fused pose (x, y, theta).
         """
         # 1. Extract and Calculate Time Delta (dt)
-        T = int(time.Time() * 1000)
+        T = int(time.time() * 1000)
         dt = (T - self.prev_T)
 
         if dt <= 0:
