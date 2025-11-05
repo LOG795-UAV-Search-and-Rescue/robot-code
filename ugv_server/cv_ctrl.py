@@ -168,12 +168,15 @@ class OpencvFuncs():
         # Wait for pipeline to start
         status, state, pending = self.pipeline.get_state(Gst.CLOCK_TIME_NONE) 
 
+    def __next_camera__(self):
+        self.video_device_index = (self.video_device_index + 1) % 5
+        self.__init_camera__("/dev/video%d" % self.video_device_index)
+
     def raw_frame(self):
         sample = self.appsink.emit('pull-sample')
         # if sample null change pipeline to video0 or video1
         if not sample:
-            self.video_device_index = 1 if self.video_device_index == 0 else 0
-            self.__init_camera__("/dev/video%d" % self.video_device_index)
+            self.__next_camera__()
             sample = self.appsink.emit('pull-sample')
         if sample:
             buffer = sample.get_buffer()
