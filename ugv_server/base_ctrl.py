@@ -136,8 +136,8 @@ class BaseController:
 			return self.base_data
 		except Exception as e:
 			self.rl.clear_buffer()
-			print(f"[base_ctrl.feedback_data] error: {e}\nraw data: {self.rl.readline().decode('utf-8')}")
-
+			print(f"[base_ctrl.feedback_data] error: {e}")
+			return None
 
 	def on_data_received(self):
 		self.ser.reset_input_buffer()
