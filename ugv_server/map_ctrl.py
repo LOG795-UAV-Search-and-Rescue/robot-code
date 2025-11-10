@@ -303,6 +303,10 @@ class MapController():
         self.pos_y = 0.0
         self.pos_estimator.reset_position()
 
+    def stop(self):
+        self.go_to_target = False
+        self.base_ctrl.base_ros_speed_ctrl(0.0, 0.0)
+
     def go_to(self, target_x, target_y):
         self.target_x = target_x
         self.target_y = target_y

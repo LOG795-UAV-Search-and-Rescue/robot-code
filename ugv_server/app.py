@@ -252,6 +252,11 @@ def reset_pos():
     map_ctrl.reset_position()
     return jsonify({'success': True, 'message': 'Position reset to (0, 0)'})
 
+@app.route('/stop', methods=['POST'])
+def stop():
+    map_ctrl.stop()
+    return jsonify({'success': True, 'message': 'Stopping movement'})
+
 
 # Video WebRTC
 
