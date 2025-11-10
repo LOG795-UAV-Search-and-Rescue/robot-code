@@ -402,8 +402,9 @@ def base_data_loop():
         # cvf.update_base_data(data)
         
         # get lidar data
-        if base.use_lidar:
-            base.rl.lidar_data_recv()
+        # if base.use_lidar:
+        #     base.rl.lidar_data_recv()
+
         elapsed_time = (time.time() - start) * 1000
         print(f"[Base Data Loop] Elapsed time: {elapsed_time:.4f} ms")
         time.sleep(0.025)
