@@ -321,27 +321,28 @@ class MapController():
         angle_error = angle_to_target - self.orientation
         angle_error = math.atan2(math.sin(angle_error), math.cos(angle_error))  # Normalize
 
-        # Control gains
-        kp_linear = 1.0
-        kp_angular = 2.0
-
-        # Calculate control commands
-        linear_velocity = kp_linear * distance
-        angular_velocity = kp_angular * angle_error
-
-        # Limit velocities
-        max_linear_velocity = 0.5  # m/s
-        max_angular_velocity = 1.0  # rad/s
-        linear_velocity = max(-max_linear_velocity, min(max_linear_velocity, linear_velocity))
-        angular_velocity = max(-max_angular_velocity, min(max_angular_velocity, angular_velocity))
-
-        # Send commands to base controller
-        self.base_ctrl.base_ros_speed_ctrl(linear_velocity, angular_velocity)
-
         # Stop if close enough to target
-        if distance < 0.01:
+        if distance < f['map_config']['position_tolerance']:
             self.go_to_target = False
             self.base_ctrl.base_ros_speed_ctrl(0.0, 0.0)
+            return
+
+        angular_tolerance = f['map_config']['angular_tolerance']
+        if angle_error > angular_tolerance or angle_error < -angular_tolerance:
+            # Rotate towards target
+            angular_velocity = f['map_config']['kp_angular'] * angle_error
+            max_angular_velocity = f['map_config']['max_angular_speed']  # rad/s
+            angular_velocity = max(-max_angular_velocity, min(max_angular_velocity, angular_velocity))
+            self.base_ctrl.base_ros_speed_ctrl(0.0, angular_velocity)
+            return
+
+        # Calculate control commands
+        linear_velocity = f['map_config']['kp_linear'] * distance
+        max_linear_velocity = f['map_config']['max_linear_speed']  # m/s
+        linear_velocity = max(-max_linear_velocity, min(max_linear_velocity, linear_velocity))
+        self.base_ctrl.base_ros_speed_ctrl(linear_velocity, 0.0)
+
+        
 
     def create_pose_graph(self):
         """
