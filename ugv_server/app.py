@@ -398,13 +398,8 @@ def base_data_loop():
         data = base.feedback_data()
         # print("Base data:", data)
         map_ctrl.update(data)
-        cvf.update_base_data(data)
 
-        # get sensor data
-        if base.extra_sensor:
-            if time.time() - sensor_read_time > sensor_interval:
-                base.rl.read_sensor_data()
-                sensor_read_time = time.time()
+        # cvf.update_base_data(data)
         
         # get lidar data
         if base.use_lidar:
