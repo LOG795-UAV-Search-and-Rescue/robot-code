@@ -292,7 +292,7 @@ class MapController():
         if self.go_to_target:
             self.__move_to_target()
 
-        print(f"Updated Position: x={x:.3f} m, y={y:.3f} m, theta={math.degrees(theta):.2f} deg. From data: {data}")
+        # print(f"Updated Position: x={x:.3f} m, y={y:.3f} m, theta={math.degrees(theta):.2f} deg. From data: {data}")
         return x, y, theta
 
     def get_position(self):
