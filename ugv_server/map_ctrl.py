@@ -278,7 +278,7 @@ class MapController():
         self.pos_x = x
         self.pos_y = y
         self.orientation = theta
-        # print(f"Updated Position: x={x:.3f} m, y={y:.3f} m, theta={math.degrees(theta):.2f} deg. From data: {data}")
+        print(f"Updated Position: x={x:.3f} m, y={y:.3f} m, theta={math.degrees(theta):.2f} deg. From data: {data}")
         return x, y, theta
 
     def get_position(self):
