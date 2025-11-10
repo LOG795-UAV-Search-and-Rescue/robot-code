@@ -222,7 +222,35 @@ def delete_video():
         print(e)
         return jsonify(success=False)
 
+FRAME_MIME_TYPE = 'multipart/x-mixed-replace; boundary=frame'
 
+# Route to stream video frames
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype=FRAME_MIME_TYPE)
+
+# Route to stream map frames
+@app.route('/map_feed')
+def map_feed():
+    return Response(generate_map_frames(), mimetype=FRAME_MIME_TYPE)
+
+# Route to stream position frames
+@app.route('/pos_feed')
+def pos_feed():
+    return Response(generate_pos_frames(), mimetype=FRAME_MIME_TYPE)
+
+# Go to position
+@app.route('/go_to', methods=['POST'])
+def go_to():
+    x = float(request.form.get('x', 0))
+    y = float(request.form.get('y', 0))
+    map_ctrl.go_to(x, y)
+    return jsonify({'success': True, 'message': f'Going to position ({x}, {y})'})
+
+@app.route('/reset_pos', methods=['POST'])
+def reset_pos():
+    map_ctrl.reset_position()
+    return jsonify({'success': True, 'message': 'Position reset to (0, 0)'})
 
 
 # Video WebRTC
@@ -290,21 +318,6 @@ def set_version(input_main, input_module):
 @app.route('/offer', methods=['POST'])
 def offer_route():
     return offer()
-
-# Route to stream video frames
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-# Route to stream map frames
-@app.route('/map_feed')
-def map_feed():
-    return Response(generate_map_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-# Route to stream position frames
-@app.route('/pos_feed')
-def pos_feed():
-    return Response(generate_pos_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/getAudioFiles', methods=['GET'])
 def get_audio_files():
@@ -397,7 +410,7 @@ def base_data_loop():
 
         map_ctrl.update(data)
         cvf.update_base_data(data)
-        # time.sleep(0.025)
+        time.sleep(0.01)
 
 def lidar_data_loop():
     while True:
@@ -435,8 +448,8 @@ def cmd_on_boot():
     speed_ratio_l = f['base_config']['speed_ratio_l']
     speed_ratio_r = f['base_config']['speed_ratio_r']
     cmd_list = [
-        {"T":142,"cmd":10},                             # set feedback interval
-        {"T":131,"cmd":1},                              # serial feedback flow off
+        {"T":142,"cmd":20},                             # set feedback interval
+        {"T":131,"cmd":1},                              # serial feedback flow on
         {"T":143,"cmd":0},                              # serial echo off
         {"T":4,"cmd":module_type},                      # select the module - 0:None, 1:RoArm-M2-S, 2:Gimbal
         {"T":300,"mode":0,"mac":"EF:EF:EF:EF:EF:EF"},   # the base won't be ctrl by esp-now broadcast cmd, but it can still recv broadcast megs.
@@ -463,8 +476,6 @@ class UDPHandler(socketserver.BaseRequestHandler):
         self.last_good_x = 0.0
         self.last_good_y = 0.0
         self.quality = self.quality_min
-        self.pending_reset = False
-        self.under_drone = False
 
     def handle(self):
         data = self.request[0].strip()
@@ -481,25 +492,28 @@ class UDPHandler(socketserver.BaseRequestHandler):
         ts, xd, yd, q, reset_flag = parts[:5]
         x, y = float(xd), float(yd)
         q = float(q)
+
+        # --- When quality is =0 the drone resets its position to 0,0, we have to detect it and then send the good positionning the rover ---
+        if reset_flag == "1" and not self.pending_reset:
+            print("[INFO] Drone reset detected — keeping rover on last valid position.")
+            # the rover will go the last good position recorded before the reset
+            map_ctrl.reset_position()
+            self.last_drone_x, self.last_drone_y = self.last_good_x, self.last_good_y
+
         # --- Quality filtering ---
         if q < self.quality_min:
             # Here we will ignore the positions with bad quality BECAUSE THEYRE NOT GOOD POSITIONS TO WE SAVE THE LAST GOOD POSITIONS
             print(f"[WARN] Low quality ({q:.0f}) → ignoring noisy data.")
             self.drone_x, self.drone_y = self.last_good_x, self.last_good_y
             self.quality = q
-            return
         else:
             # Otherwise we will store the new good positions here
             self.drone_x, self.drone_y, self.quality = x, y, q
             self.last_good_x, self.last_good_y = x, y
+            map_ctrl.go_to(x, y)
 
-        # --- When quality is =0 the drone resets its position to 0,0, we have to detect it and then send the good positionning the rover ---
-        if reset_flag == "1" and not self.pending_reset:
-            print("[INFO] Drone reset detected — keeping rover on last valid position.")
-            self.pending_reset = True
-            self.under_drone = False
-            # the rover will go the last good position recorded before the reset
-            self.last_drone_x, self.last_drone_y = self.last_good_x, self.last_good_y
+
+        
 
 def start_udp_server():
     # Replace with your desired UDP port

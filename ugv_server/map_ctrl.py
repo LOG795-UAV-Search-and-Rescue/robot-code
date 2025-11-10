@@ -40,6 +40,13 @@ class OdometryFuser:
         self.prev_odl = 0.0
         self.prev_odr = 0.0
 
+    def reset_position(self):
+        """
+        Resets the odometry state to the origin.
+        """
+        self.x = 0.0
+        self.y = 0.0
+
     def update(self, data):
         """
         Processes a new data packet and updates the robot's pose.
@@ -270,6 +277,9 @@ class MapController():
         self.pos_x = 0.0
         self.pos_y = 0.0
         self.orientation = 0.0
+        self.target_x = 0.0
+        self.target_y = 0.0
+        self.go_to_target = False
 
     def update(self, data):
         if data is None:
@@ -278,11 +288,56 @@ class MapController():
         self.pos_x = x
         self.pos_y = y
         self.orientation = theta
+
+        if self.go_to_target:
+            self.__move_to_target()
+
         print(f"Updated Position: x={x:.3f} m, y={y:.3f} m, theta={math.degrees(theta):.2f} deg. From data: {data}")
         return x, y, theta
 
     def get_position(self):
         return self.pos_x, self.pos_y, self.orientation
+    
+    def reset_position(self):
+        self.pos_x = 0.0
+        self.pos_y = 0.0
+        self.pos_estimator.reset_position()
+
+    def go_to(self, target_x, target_y):
+        self.target_x = target_x
+        self.target_y = target_y
+        self.go_to_target = True
+
+    def __move_to_target(self):
+        # Simple proportional controller to go to target
+        error_x = self.target_x - self.pos_x
+        error_y = self.target_y - self.pos_y
+        distance = math.hypot(error_x, error_y)
+        angle_to_target = math.atan2(error_y, error_x)
+        angle_error = angle_to_target - self.orientation
+        angle_error = math.atan2(math.sin(angle_error), math.cos(angle_error))  # Normalize
+
+        # Control gains
+        kp_linear = 1.0
+        kp_angular = 2.0
+
+        # Calculate control commands
+        linear_velocity = kp_linear * distance
+        angular_velocity = kp_angular * angle_error
+
+        # Limit velocities
+        max_linear_velocity = 0.5  # m/s
+        max_angular_velocity = 1.0  # rad/s
+        linear_velocity = max(-max_linear_velocity, min(max_linear_velocity, linear_velocity))
+        angular_velocity = max(-max_angular_velocity, min(max_angular_velocity, angular_velocity))
+
+        # Send commands to base controller
+        self.base_ctrl.base_ros_speed_ctrl(linear_velocity, angular_velocity)
+
+        # Stop if close enough to target
+        if distance < 0.01:
+            self.go_to_target = False
+            self.base_ctrl.base_ros_speed_ctrl(0.0, 0.0)
 
     def create_pose_graph(self):
         """
