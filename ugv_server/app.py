@@ -392,15 +392,11 @@ def update_data_loop():
 
 def base_data_loop():
     while True:
-        start = time.time()
         data = base.feedback_data()
         # print("Base data:", data)
+
         map_ctrl.update(data)
-
         cvf.update_base_data(data)
-
-        elapsed_time = (time.time() - start) * 1000
-        print(f"[Base Data Loop] Elapsed time: {elapsed_time:.4f} ms")
         # time.sleep(0.025)
 
 def lidar_data_loop():
