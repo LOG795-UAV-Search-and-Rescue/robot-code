@@ -391,22 +391,21 @@ def update_data_loop():
         time.sleep(5)
 
 def base_data_loop():
-    sensor_interval = 1
-    sensor_read_time = time.time()
     while True:
         start = time.time()
         data = base.feedback_data()
         # print("Base data:", data)
         map_ctrl.update(data)
 
-        # cvf.update_base_data(data)
-        
-        # get lidar data
-        # if base.use_lidar:
-        #     base.rl.lidar_data_recv()
+        cvf.update_base_data(data)
 
         elapsed_time = (time.time() - start) * 1000
         print(f"[Base Data Loop] Elapsed time: {elapsed_time:.4f} ms")
+        # time.sleep(0.025)
+
+def lidar_data_loop():
+    while True:
+        base.rl.lidar_data_recv()
         time.sleep(0.025)
 
 @socketio.on('json', namespace='/json')
@@ -543,6 +542,12 @@ if __name__ == "__main__":
     # base data update
     base_update_thread = threading.Thread(target=base_data_loop, daemon=True)
     base_update_thread.start()
+
+    # lidar data update
+    
+    if base.use_lidar:
+        lidar_update_thread = threading.Thread(target=lidar_data_loop, daemon=True)
+        lidar_update_thread.start()
 
     # lights off
     base.lights_ctrl(0, 0)
