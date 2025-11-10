@@ -47,7 +47,7 @@ class OdometryFuser:
         :return: A tuple of the new fused pose (x, y, theta).
         """
         # 1. Extract and Calculate Time Delta (dt)
-        T = int(time.time() * 1000)
+        T = float(time.time())
         dt = (T - self.prev_T)
 
         if dt <= 0:
@@ -238,29 +238,29 @@ class DifferentialDriveEKF:
         return self.x_est, self.P
 
 # --- Example Usage ---
-WHEELBASE = 0.172  # meters
-DT = 0.05          # 50 ms time step (based on data T=1000 to T=1050)
+# WHEELBASE = 0.172  # meters
+# DT = 0.05          # 50 ms time step (based on data T=1000 to T=1050)
 
-ekf = DifferentialDriveEKF(WHEELBASE, DT)
+# ekf = DifferentialDriveEKF(WHEELBASE, DT)
 
-# Example data packets (T is time in ms)
-data1 = {'T': 1000, 'L': 0, 'R': 0, 'gz': 0.0, 'mx': 50.0, 'my': 0.0, 'odl': 0.0, 'odr': 0.0, 'v': 0.0}
-data2 = {'T': 1050, 'L': 50, 'R': 50, 'gz': 0.1, 'mx': 49.0, 'my': 5.0, 'odl': 0.005, 'odr': 0.005, 'v': 0.1} # Straight move 5mm, slight rotation
-data3 = {'T': 1100, 'L': 30, 'R': 60, 'gz': 1.5, 'mx': 10.0, 'my': 40.0, 'odl': 0.006, 'odr': 0.007, 'v': 0.4} # Turning Left
+# # Example data packets (T is time in ms)
+# data1 = {'T': 1000, 'L': 0, 'R': 0, 'gz': 0.0, 'mx': 50.0, 'my': 0.0, 'odl': 0.0, 'odr': 0.0, 'v': 0.0}
+# data2 = {'T': 1050, 'L': 50, 'R': 50, 'gz': 0.1, 'mx': 49.0, 'my': 5.0, 'odl': 0.005, 'odr': 0.005, 'v': 0.1} # Straight move 5mm, slight rotation
+# data3 = {'T': 1100, 'L': 30, 'R': 60, 'gz': 1.5, 'mx': 10.0, 'my': 40.0, 'odl': 0.006, 'odr': 0.007, 'v': 0.4} # Turning Left
 
-print("--- Extended Kalman Filter (EKF) Localization ---")
+# print("--- Extended Kalman Filter (EKF) Localization ---")
 
-# Data 1 (Initial Setup)
-ekf.process_data(data1)
-print(f"T={data1['T']}ms: Pose ({ekf.x_est[0]:.4f}, {ekf.x_est[1]:.4f}, {ekf.x_est[2]:.4f} rad)")
+# # Data 1 (Initial Setup)
+# ekf.process_data(data1)
+# print(f"T={data1['T']}ms: Pose ({ekf.x_est[0]:.4f}, {ekf.x_est[1]:.4f}, {ekf.x_est[2]:.4f} rad)")
 
-# Data 2 (Prediction + Update)
-ekf.process_data(data2)
-print(f"T={data2['T']}ms: Pose ({ekf.x_est[0]:.4f}, {ekf.x_est[1]:.4f}, {ekf.x_est[2]:.4f} rad)")
+# # Data 2 (Prediction + Update)
+# ekf.process_data(data2)
+# print(f"T={data2['T']}ms: Pose ({ekf.x_est[0]:.4f}, {ekf.x_est[1]:.4f}, {ekf.x_est[2]:.4f} rad)")
 
-# Data 3 (Turning)
-ekf.process_data(data3)
-print(f"T={data3['T']}ms: Pose ({ekf.x_est[0]:.4f}, {ekf.x_est[1]:.4f}, {ekf.x_est[2]:.4f} rad)")
+# # Data 3 (Turning)
+# ekf.process_data(data3)
+# print(f"T={data3['T']}ms: Pose ({ekf.x_est[0]:.4f}, {ekf.x_est[1]:.4f}, {ekf.x_est[2]:.4f} rad)")
 
 
 class MapController():
