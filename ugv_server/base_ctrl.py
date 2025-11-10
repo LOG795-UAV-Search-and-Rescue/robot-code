@@ -128,7 +128,7 @@ class BaseController:
 					self.base_data = self.data_buffer
 					self.data_buffer = None
 					if self.base_data["T"] == 1003:
-						print(self.base_data)
+						# print(self.base_data)
 						return self.base_data
 			self.rl.clear_buffer()
 			self.data_buffer = json.loads(self.rl.readline().decode('utf-8'))
