@@ -242,8 +242,8 @@ def pos_feed():
 # Go to position
 @app.route('/go_to', methods=['POST'])
 def go_to():
-    x = float(request.form.get('x', 0))
-    y = float(request.form.get('y', 0))
+    x = float(request.json.get('x', 0))
+    y = float(request.json.get('y', 0))
     map_ctrl.go_to(x, y)
     return jsonify({'success': True, 'message': f'Going to position ({x}, {y})'})
 
