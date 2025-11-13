@@ -473,49 +473,59 @@ def cmd_on_boot():
 
 
 class UDPHandler(socketserver.BaseRequestHandler):
-    def __init__(self, request, client_address, server):
-        super().__init__(request, client_address, server)
-        self.quality_min = f['upd_control']['quality_min']
-        self.drone_x = 0.0
-        self.drone_y = 0.0
-        self.last_good_x = 0.0
-        self.last_good_y = 0.0
-        self.quality = self.quality_min
+    mode_follow = True   # class variable
+    cmd_triggered = False
+    quality_min = 30.0  # minimum acceptable VIO quality
+    last_good_x = 0.0
+    last_good_y = 0.0
+    drone_x = 0.0
+    drone_y = 0.0
 
     def handle(self):
         data = self.request[0].strip()
-        self.receive_movement_data(data)
-        print(f"Received UDP data: {data.decode()}")
-    
-    def receive_movement_data(self, data):
-        last_line = data.split("\n")[-1].strip()
-        parts = last_line.split(",")
-        # Expected format: ts, x, y, q, reset_flag
-        if len(parts) < 5:
+        msg = data.decode(errors="ignore").strip()
+
+        # === Handle Mode Commands ===
+        if msg == "MODE_CONTINUOUS":
+            UDPHandler.mode_follow = True
+            UDPHandler.cmd_triggered = False
+            print("[MODE] Continuous follow mode activated.")
+            return
+
+        if msg == "MODE_COME_TO_ME":
+            UDPHandler.mode_follow = False
+            UDPHandler.cmd_triggered = False
+            print("[MODE] Waiting mode — rover will stop moving.")
+            map_ctrl.stop()
+            return
+
+        if msg == "CMD_COME_TO_ME":
+            UDPHandler.cmd_triggered = True
+            print("[CMD] Come-To-Me command received.")
+            map_ctrl.go_to(self.last_good_x, self.last_good_y)
+            return
+
+        # === Otherwise: Pose Data ===
+        parts = msg.split(",")
+        if len(parts) < 4:
             return
         
-        ts, xd, yd, q, reset_flag = parts[:5]
+        ts, xd, yd, q = parts[:4]
         x, y = float(xd), float(yd)
         q = float(q)
 
-        # --- When quality is =0 the drone resets its position to 0,0, we have to detect it and then send the good positionning the rover ---
-        if reset_flag == "1" and not self.pending_reset:
-            print("[INFO] Drone reset detected — keeping rover on last valid position.")
-            # the rover will go the last good position recorded before the reset
-            map_ctrl.reset_position()
-            self.last_drone_x, self.last_drone_y = self.last_good_x, self.last_good_y
-
-        # --- Quality filtering ---
         if q < self.quality_min:
-            # Here we will ignore the positions with bad quality BECAUSE THEYRE NOT GOOD POSITIONS TO WE SAVE THE LAST GOOD POSITIONS
             print(f"[WARN] Low quality ({q:.0f}) → ignoring noisy data.")
             self.drone_x, self.drone_y = self.last_good_x, self.last_good_y
-            self.quality = q
-        else:
-            # Otherwise we will store the new good positions here
-            self.drone_x, self.drone_y, self.quality = x, y, q
-            self.last_good_x, self.last_good_y = x, y
+            return
+
+        self.drone_x, self.drone_y, self.quality = x, y, q
+        self.last_good_x, self.last_good_y = x, y
+
+        # Follow logic only if enabled
+        if UDPHandler.mode_follow and not UDPHandler.cmd_triggered:
             map_ctrl.go_to(x, y)
+
 
 
         
