@@ -495,36 +495,44 @@ class UDPHandler(socketserver.BaseRequestHandler):
         if msg == "MODE_COME_TO_ME":
             UDPHandler.mode_follow = False
             UDPHandler.cmd_triggered = False
-            print("[MODE] Waiting mode — rover will stop moving.")
+            print("[MODE] Come-To-Me mode activated. Rover will stop.")
             map_ctrl.stop()
             return
 
         if msg == "CMD_COME_TO_ME":
             UDPHandler.cmd_triggered = True
-            print("[CMD] Come-To-Me command received.")
+            print(f"[CMD] Come-To-Me command triggered → going to last drone position ({self.last_good_x:.2f}, {self.last_good_y:.2f})")
             map_ctrl.go_to(self.last_good_x, self.last_good_y)
             return
 
         # === Otherwise: Pose Data ===
         parts = msg.split(",")
         if len(parts) < 4:
+            print(f"[WARN] Malformed UDP packet: {msg}")
             return
-        
+
         ts, xd, yd, q = parts[:4]
         x, y = float(xd), float(yd)
         q = float(q)
 
+        # Quality filter
         if q < self.quality_min:
-            print(f"[WARN] Low quality ({q:.0f}) → ignoring noisy data.")
-            self.drone_x, self.drone_y = self.last_good_x, self.last_good_y
+            print(f"[WARN] Low quality ({q:.0f}) — ignoring noisy data. (Last good: {self.last_good_x:.2f}, {self.last_good_y:.2f})")
             return
 
+        # Update positions
         self.drone_x, self.drone_y, self.quality = x, y, q
         self.last_good_x, self.last_good_y = x, y
 
-        # Follow logic only if enabled
+        # Log current state
+        print(f"[DATA] Drone=({x:.2f}, {y:.2f}, Q={q:.0f}) | Rover(last known)=({map_ctrl.cur_x if hasattr(map_ctrl, 'cur_x') else 0:.2f}, {map_ctrl.cur_y if hasattr(map_ctrl, 'cur_y') else 0:.2f})")
+
+        # Follow logic
         if UDPHandler.mode_follow and not UDPHandler.cmd_triggered:
+            print(f"[FOLLOW] Following drone → moving rover to ({x:.2f}, {y:.2f})")
             map_ctrl.go_to(x, y)
+        else:
+            print(f"[FOLLOW] Follow disabled or CMD mode active — no movement command sent.")
 
 
 
