@@ -112,7 +112,7 @@ upd_control:
   quality_min: 30
 map_config:
   wheelbase_m: 0.172
-  alpha: 0.95
+  alpha: 1
   max_linear_speed: 0.5
   max_angular_speed: 1.0
   kp_linear: 1.0
