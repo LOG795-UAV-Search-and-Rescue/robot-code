@@ -570,8 +570,16 @@ def print_replace(string):
     sys.stdout.write(LINE_CLEAR + '\r' + string)
     sys.stdout.flush()
 
+import atexit
+
+def on_exit():
+    base.lights_ctrl(0, 0)
+    base.base_ros_speed_ctrl(0, 0)
+
 # Run the Flask app
 if __name__ == "__main__":
+    atexit.register(on_exit)
+
     # breath light off
     base.change_breath_light_flag(False)
     
