@@ -476,10 +476,14 @@ class UDPHandler(socketserver.BaseRequestHandler):
     mode_follow = True   # class variable
     cmd_triggered = False
     quality_min = 20.0  # minimum acceptable VIO quality
-    last_good_x = 0.0
-    last_good_y = 0.0
-    drone_x = 0.0
-    drone_y = 0.0
+
+
+    def __init__(self, request, client_address, server):
+        super().__init__(request, client_address, server)
+        self.drone_x = 0.0
+        self.drone_y = 0.0
+        self.last_good_x = 0.0
+        self.last_good_y = 0.0
 
     def handle(self):
         data = self.request[0].strip()
