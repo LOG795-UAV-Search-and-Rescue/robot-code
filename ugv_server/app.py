@@ -540,8 +540,8 @@ class UDPHandler(socketserver.BaseRequestHandler):
             return
 
         # Update positions
-        x, y, o = map_ctrl.get_position()
-        print_replace(f"[DATA] Drone=({x:.2f}, {y:.2f}, Q={q:.0f}) | Rover=(x={x:.2f}, y={y:.2f}, o={o:.1f} rad)")
+        rover_x, rover_y, o = map_ctrl.get_position()
+        print_replace(f"[DATA] Drone=({x:.2f}, {y:.2f}, Q={q:.0f}) | Rover=(x={rover_x:.2f}, y={rover_y:.2f}, o={o:.1f} rad)")
 
         self.drone_x, self.drone_y, self.quality = x, y, q
         self.last_good_x, self.last_good_y = x, y
