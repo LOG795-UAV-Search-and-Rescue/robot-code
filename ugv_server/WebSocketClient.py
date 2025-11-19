@@ -75,7 +75,7 @@ class Robot:
             # print("Sending head data:", data_head)
             self.controller.base_json_ctrl(data_head)
 
-        x = self._throttle * 2.5
+        x = self._throttle * 1.3
         z = self._steering * math.pi * 2
         data = {"T":13,"X":x,"Z":z}
         # print("Sending control data:", data)
