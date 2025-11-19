@@ -413,6 +413,7 @@ def update_data_loop():
 def base_data_loop():
     while True:
         data = base.feedback_data()
+        print_replace(data)
         map_ctrl.update(data)
 
 def lidar_data_loop():
