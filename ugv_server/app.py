@@ -4,6 +4,7 @@ import threading
 import yaml, os
 import subprocess
 import sys
+import atexit
 
 def set_default_sink(device_name):
     try:
@@ -570,7 +571,6 @@ def print_replace(string):
     sys.stdout.write(LINE_CLEAR + '\r' + string)
     sys.stdout.flush()
 
-import atexit
 
 def on_exit():
     base.lights_ctrl(0, 0)
