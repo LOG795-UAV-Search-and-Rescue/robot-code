@@ -488,6 +488,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = self.request[0].strip()
         msg = data.decode(errors="ignore").strip()
+        print(f"[UDP] Received message: {msg}")
 
         # === Handle Mode Commands ===
         if msg == "MODE_CONTINUOUS":
@@ -516,8 +517,20 @@ class UDPHandler(socketserver.BaseRequestHandler):
             return
 
         ts, xd, yd, q = parts[:4]
-        x, y = float(xd), float(yd)
-        q = float(q)
+
+        try:
+            x = float(xd)
+            y = float(yd)
+        except ValueError:
+            print(f"[WARN] Invalid position values: {xd}, {yd}")
+            x, y = 0, 0
+        
+
+        try:
+            q = float(q)
+        except ValueError:
+            print(f"[WARN] Invalid quality value: {q}")
+            q = 0.0
 
         # Quality filter
         if q < self.quality_min:
