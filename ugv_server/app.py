@@ -3,6 +3,9 @@ from base_ctrl import BaseController
 import threading
 import yaml, os
 import subprocess
+import sys
+
+LINE_CLEAR = '\x1b[2K'
 
 def set_default_sink(device_name):
     try:
@@ -563,6 +566,7 @@ def start_udp_server():
         server.serve_forever()
 
 
+
 # Run the Flask app
 if __name__ == "__main__":
     # breath light off
@@ -610,6 +614,14 @@ if __name__ == "__main__":
     udp_thread = threading.Thread(target=start_udp_server)
     udp_thread.daemon = True # Allow the thread to exit when the main program exits
     udp_thread.start()
+
+    for i in range(101):
+        output = f"Progress: {i}% complete"
+        # Clear the line before printing the new output
+        sys.stdout.write(LINE_CLEAR + '\r' + output)
+        sys.stdout.flush()
+        time.sleep(0.02)
+
 
     # run the main web app
     socketio.run(app, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)
