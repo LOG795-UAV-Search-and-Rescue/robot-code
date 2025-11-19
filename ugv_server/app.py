@@ -617,13 +617,5 @@ if __name__ == "__main__":
     udp_thread.daemon = True # Allow the thread to exit when the main program exits
     udp_thread.start()
 
-    for i in range(101):
-        output = f"Progress: {i}% complete"
-        # Clear the line before printing the new output
-        sys.stdout.write(LINE_CLEAR + '\r' + output)
-        sys.stdout.flush()
-        time.sleep(0.02)
-
-
     # run the main web app
     socketio.run(app, host='0.0.0.0', port=5000, allow_unsafe_werkzeug=True)
