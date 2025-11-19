@@ -225,8 +225,8 @@ class DifferentialDriveEKF:
     def process_data(self, data):
         """Main EKF loop: Predict -> Update"""
         self.data_copy = data # Store for use in update step
-        T = data.get('T', self.prev_T)
-        dt_current = (T - self.prev_T) / 1000.0
+        T = float(time.time())
+        dt_current = (T - self.prev_T)
         
         if dt_current > 0:
             # 1. Prediction (using Odometry/Controls)
