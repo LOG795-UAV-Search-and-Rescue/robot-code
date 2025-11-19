@@ -557,6 +557,9 @@ if __name__ == "__main__":
     
     # lights off
     base.lights_ctrl(255, 255)
+
+    # set position to (0,0)
+    map_ctrl.reset_position()
     
     # play a audio file in /sounds/robot_started/
     audio_ctrl.play_random_audio("robot_started", False)
