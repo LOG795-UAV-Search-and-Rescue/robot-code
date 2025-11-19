@@ -5,8 +5,6 @@ import yaml, os
 import subprocess
 import sys
 
-LINE_CLEAR = '\x1b[2K'
-
 def set_default_sink(device_name):
     try:
         command = ['pacmd', 'set-default-sink', device_name]
@@ -491,32 +489,32 @@ class UDPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         data = self.request[0].strip()
         msg = data.decode(errors="ignore").strip()
-        print(f"[UDP] Received message: {msg}")
+        # print(f"[UDP] Received message: {msg}")
 
         # === Handle Mode Commands ===
         if msg == "MODE_CONTINUOUS":
             UDPHandler.mode_follow = True
             UDPHandler.cmd_triggered = False
-            print("[MODE] Continuous follow mode activated.")
+            # print("[MODE] Continuous follow mode activated.")
             return
 
         if msg == "MODE_COME_TO_ME":
             UDPHandler.mode_follow = False
             UDPHandler.cmd_triggered = False
-            print("[MODE] Come-To-Me mode activated. Rover will stop.")
+            # print("[MODE] Come-To-Me mode activated. Rover will stop.")
             map_ctrl.stop()
             return
 
         if msg == "CMD_COME_TO_ME":
             UDPHandler.cmd_triggered = True
-            print(f"[CMD] Come-To-Me command triggered → going to last drone position ({self.last_good_x:.2f}, {self.last_good_y:.2f})")
+            # print(f"[CMD] Come-To-Me command triggered → going to last drone position ({self.last_good_x:.2f}, {self.last_good_y:.2f})")
             map_ctrl.go_to(self.last_good_x, self.last_good_y)
             return
 
         # === Otherwise: Pose Data ===
         parts = msg.split(",")
         if len(parts) < 4:
-            print(f"[WARN] Malformed UDP packet: {msg}")
+            # print(f"[WARN] Malformed UDP packet: {msg}")
             return
 
         ts, xd, yd, q = parts[:4]
@@ -525,34 +523,34 @@ class UDPHandler(socketserver.BaseRequestHandler):
             x = float(xd)
             y = float(yd)
         except ValueError:
-            print(f"[WARN] Invalid position values: {xd}, {yd}")
+            # print(f"[WARN] Invalid position values: {xd}, {yd}")
             x, y = 0, 0
         
 
         try:
             q = float(q)
         except ValueError:
-            print(f"[WARN] Invalid quality value: {q}")
+            # print(f"[WARN] Invalid quality value: {q}")
             q = 0.0
 
         # Quality filter
         if q < self.quality_min:
-            print(f"[WARN] Low quality ({q:.0f}) — ignoring noisy data. (Last good: {self.last_good_x:.2f}, {self.last_good_y:.2f})")
+            # print(f"[WARN] Low quality ({q:.0f}) — ignoring noisy data. (Last good: {self.last_good_x:.2f}, {self.last_good_y:.2f})")
             return
 
         # Update positions
+        print_replace(f"[DATA] Drone=({x:.2f}, {y:.2f}, Q={q:.0f}) | Rover(last known)=({map_ctrl.cur_x if hasattr(map_ctrl, 'cur_x') else 0:.2f}, {map_ctrl.cur_y if hasattr(map_ctrl, 'cur_y') else 0:.2f})")
+
         self.drone_x, self.drone_y, self.quality = x, y, q
         self.last_good_x, self.last_good_y = x, y
 
-        # Log current state
-        print(f"[DATA] Drone=({x:.2f}, {y:.2f}, Q={q:.0f}) | Rover(last known)=({map_ctrl.cur_x if hasattr(map_ctrl, 'cur_x') else 0:.2f}, {map_ctrl.cur_y if hasattr(map_ctrl, 'cur_y') else 0:.2f})")
-
         # Follow logic
         if UDPHandler.mode_follow and not UDPHandler.cmd_triggered:
-            print(f"[FOLLOW] Following drone → moving rover to ({x:.2f}, {y:.2f})")
+            # print(f"[FOLLOW] Following drone → moving rover to ({x:.2f}, {y:.2f})")
             map_ctrl.go_to(x, y)
         else:
-            print(f"[FOLLOW] Follow disabled or CMD mode active — no movement command sent.")
+            pass
+            # print(f"[FOLLOW] Follow disabled or CMD mode active — no movement command sent.")
 
 
 
@@ -565,7 +563,11 @@ def start_udp_server():
         print(f"UDP server listening on port {udp_port}")
         server.serve_forever()
 
+LINE_CLEAR = '\x1b[2K'
 
+def print_replace(string):
+    sys.stdout.write(LINE_CLEAR + '\r' + string)
+    sys.stdout.flush()
 
 # Run the Flask app
 if __name__ == "__main__":
