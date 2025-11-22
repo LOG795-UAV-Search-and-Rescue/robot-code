@@ -1,1 +1,1 @@
-XDG_RUNTIME_DIR=/run/user/$(id -u) ~/robot-code/ugv_server/ugv-env/bin/python ~/robot-code/ugv_server/WebSocketClient.py
+XDG_RUNTIME_DIR=/run/user/$(id -u) ~/robot-code/ugv_server/ugv-env/bin/python ~/robot-code/ugv_server/WebSocketClient.py >> ~/ugv.log 2>&1
