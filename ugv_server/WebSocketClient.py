@@ -113,12 +113,14 @@ async def handle():
     robot.throttle = 0
     print("ready to go!")
     # async with websockets.connect("ws://192.168.0.39:5000/robot") as websocket:
-    async with websockets.connect("wss://home.adammihajlovic.ca/robot") as websocket:
-        await asyncio.gather(
-            receive_commands(websocket, robot),
-            send_image(websocket, robot),
-        )
-    await websocket.close()
+    while True:
+        # async with websockets.connect("ws://192.168.0.39:5000/robot") as websocket:
+        async with websockets.connect("wss://home.adammihajlovic.ca/robot") as websocket:
+            await asyncio.gather(
+                receive_commands(websocket, robot),
+                send_image(websocket, robot),
+            )
+        await websocket.close()
 
 
 if __name__ == "__main__":
