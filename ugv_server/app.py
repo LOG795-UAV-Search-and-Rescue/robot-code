@@ -415,6 +415,7 @@ def base_data_loop():
         try:
             data = base.feedback_data()
             if (data is not None):
+                print(data)
                 pass
                 # print_replace(f"'gx':{data['gx']},'gy':{data['gy']},'gz':{data['gz']},'ax':{data['ax']},'ay':{data['ay']},'az':{data['az']},'odl':{data['odl']},'odr':{data['odr']}")
 
