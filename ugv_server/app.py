@@ -412,12 +412,15 @@ def update_data_loop():
 
 def base_data_loop():
     while True:
-        data = base.feedback_data()
-        if (data is not None):
-            print_replace(f"'gx':{data['gx']},'gy':{data['gy']},'gz':{data['gz']},'ax':{data['ax']},'ay':{data['ay']},'az':{data['az']},'odl':{data['odl']},'odr':{data['odr']}")
+        try:
+            data = base.feedback_data()
+            if (data is not None):
+                print_replace(f"'gx':{data['gx']},'gy':{data['gy']},'gz':{data['gz']},'ax':{data['ax']},'ay':{data['ay']},'az':{data['az']},'odl':{data['odl']},'odr':{data['odr']}")
 
-        # print_replace(json.dumps(data))
-        map_ctrl.update(data)
+            # print_replace(json.dumps(data))
+            map_ctrl.update(data)
+        except Exception as e:
+            print("Error in base_data_recv:", e)
 
 def lidar_data_loop():
     while True:
