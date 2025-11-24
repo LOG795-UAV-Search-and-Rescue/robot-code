@@ -42,8 +42,8 @@ with open(thisPath + '/config.yaml', 'r') as yaml_file:
 
 class MapController():
     def __init__(self, base_ctrl: BaseController):
-        # self.pos_estimator = OdometryFuser(wheelbase_m=f['map_config']['wheelbase_m'], alpha=f['map_config']['alpha'])
-        self.pos_estimator = OdometryFuserMAG(wheelbase_m=f['map_config']['wheelbase_m'])
+        self.pos_estimator = OdometryFuser(wheelbase_m=f['map_config']['wheelbase_m'], alpha=f['map_config']['alpha'])
+        # self.pos_estimator = OdometryFuserMAG(wheelbase_m=f['map_config']['wheelbase_m'])
         # self.pos_estimator = DifferentialDriveEKF(wheelbase_m=f['map_config']['wheelbase_m'], dt=f['map_config']['dt'])
         self.base_ctrl = base_ctrl
         self.pos_x = 0.0
