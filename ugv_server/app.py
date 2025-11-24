@@ -356,7 +356,15 @@ def audio_stop():
     return jsonify({'success': 'Audio stop'})
 
 
-
+def rover_pose_broadcast_loop():
+    while True:
+        try:
+            x, y, o = map_ctrl.get_position()   # orientation 'o' already available
+            packet = f"ROVER,{x:.3f},{y:.3f},{o:.3f}"
+            ws_broadcast(packet)
+        except:
+            pass
+        time.sleep(0.05)   # 20 Hz broadcast rate
 
 # Web socket
 
@@ -622,6 +630,10 @@ if __name__ == "__main__":
     si.resume()
     data_update_thread = threading.Thread(target=update_data_loop, daemon=True)
     data_update_thread.start()
+    
+    #rover pose thread start
+    rover_ws_thread = threading.Thread(target=rover_pose_broadcast_loop, daemon=True)
+    rover_ws_thread.start()
 
     # base data update
     base_update_thread = threading.Thread(target=base_data_loop, daemon=True)
