@@ -499,6 +499,16 @@ class UDPHandler(socketserver.BaseRequestHandler):
         # print(f"[UDP] Received message: {msg}")
 
         # === Handle Mode Commands ===
+        if msg.startswith("GOTO"):
+            try:
+                _, xs, ys = msg.split()
+                x = float(xs)
+                y = float(ys)
+                print(f"[GOTO] Moving rover to ({x}, {y}) from UI click")
+                map_ctrl.go_to(x, y)
+            except Exception as e:
+                print(f"[ERROR] Bad GOTO command: {msg} ({e})")
+            return
         if msg == "MODE_CONTINUOUS":
             UDPHandler.mode_follow = True
             UDPHandler.cmd_triggered = False
