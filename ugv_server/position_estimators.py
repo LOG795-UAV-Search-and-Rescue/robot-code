@@ -2,6 +2,95 @@ import math
 import time
 import numpy as np
 
+class OdometryEstimator:
+    """
+    Calculates the robot's position (x, y) and orientation (theta) 
+    using wheel odometry data only.
+    """
+    
+    def __init__(self, wheelbase_m):
+        """
+        Initializes the odometry calculator.
+        :param wheelbase_m: The distance between the centers of the wheels (in meters).
+        """
+        self.WHEELBASE = wheelbase_m
+
+        # State variables
+        self.x_est = np.array([0.0, 0.0, 0.0])  # [x, y, theta]
+        self.P = np.diag([0.1, 0.1, 0.1]) # Initial uncertainty
+
+        # Previous sensor readings for calculating deltas
+        self.prev_t = 0
+        self.prev_odl = 0.0
+        self.prev_odr = 0.0
+
+    def reset_position(self):
+        """
+        Resets the odometry x and y state to the origin.
+        """
+        self.x_est = np.array([0.0, 0.0, self.x_est[2]])
+
+    def process_data(self, data):
+        return self.update(data)
+
+    def update(self, data):
+        """
+        Processes a new data packet and updates the robot's pose.
+        :param data: The new dictionary of sensor readings.
+        :return: A tuple of the new pose (x, y, theta).
+        """
+        # 1. Extract and Calculate Time Delta (dt)
+        t = float(time.time())
+        dt = (t - self.prev_t)
+
+        if dt <= 0:
+            return self.x_est, self.P
+
+        # 2. Extract Wheel Odometry Data
+        odl = data.get('odl', self.prev_odl)
+        odr = data.get('odr', self.prev_odr)
+        
+        # Calculate distance deltas (assuming 'odl' and 'odr' are in meters)
+        delta_d_l = odl - self.prev_odl
+        delta_d_r = odr - self.prev_odr
+
+        # 3. Dead Reckoning (Odometry Calculation)
+        
+        # Average distance traveled by the center of the robot
+        delta_d = (delta_d_r + delta_d_l) / 2.0
+        
+        # Change in orientation based purely on wheel odometry
+        delta_theta_odom = (delta_d_r - delta_d_l) / self.WHEELBASE
+        
+        # Update odometry-only orientation
+        self.theta_odom += delta_theta_odom
+        
+        # Average heading used for calculating linear displacement
+        theta_avg = self.x_est[2] + (delta_theta_odom / 2.0)
+
+        # Calculate linear displacement in the global frame
+        delta_x = delta_d * math.cos(theta_avg)
+        delta_y = delta_d * math.sin(theta_avg)
+
+        # Update position
+        self.x_est[0] += delta_x
+        self.x_est[1] += delta_y
+
+        
+        self.x_est[2] += delta_theta_odom
+        
+        # Normalize theta to be within -pi to pi
+        self.x_est[2] = math.atan2(math.sin(self.x_est[2]), math.cos(self.x_est[2]))
+
+        # 5. Store current readings for the next iteration
+        self.prev_t = t
+        self.prev_odl = odl
+        self.prev_odr = odr
+
+        # 6. Return the final fused pose
+        return self.x_est, self.P
+
+
 class OdometryFuser:
     """
     Calculates the robot's position (x, y) and orientation (theta) 

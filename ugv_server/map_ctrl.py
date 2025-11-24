@@ -1,5 +1,7 @@
 from base_ctrl import BaseController
-from position_estimators import OdometryFuser, OdometryFuserMAG, DifferentialDriveEKF
+from position_estimators import OdometryEstimator, OdometryFuser, OdometryFuserMAG, DifferentialDriveEKF
+from lidar_pose import LidarPoseEstimator, estimate_pose_from_lidar
+from typing import Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import io
@@ -42,24 +44,27 @@ with open(thisPath + '/config.yaml', 'r') as yaml_file:
 
 class MapController():
     def __init__(self, base_ctrl: BaseController):
+        self.pos_estimator = OdometryEstimator(wheelbase_m=f['map_config']['wheelbase_m'])
         # self.pos_estimator = OdometryFuser(wheelbase_m=f['map_config']['wheelbase_m'], alpha=f['map_config']['alpha'])
-        self.pos_estimator = OdometryFuserMAG(wheelbase_m=f['map_config']['wheelbase_m'])
+        # self.pos_estimator = OdometryFuserMAG(wheelbase_m=f['map_config']['wheelbase_m'])
         # self.pos_estimator = DifferentialDriveEKF(wheelbase_m=f['map_config']['wheelbase_m'], dt=f['map_config']['dt'])
         self.base_ctrl = base_ctrl
         self.pos_x = 0.0
         self.pos_y = 0.0
-        self.orientation = 0.0
+        self.yaw = 0.0
         self.target_x = 0.0
         self.target_y = 0.0
         self.go_to_target = False
+        # Create LidarPoseEstimator with configuration values
+        self.lidar_estimator = LidarPoseEstimator(map_resolution=f['map_config'].get('map_resolution_m', 0.02), max_map_points=f['map_config'].get('map_max_points', 200000))
 
     def update(self, data):
         if data is None:
-            return self.pos_x, self.pos_y, self.orientation
+            return self.pos_x, self.pos_y, self.yaw
         x_est, p = self.pos_estimator.process_data(data)
         self.pos_x = x_est[0]
         self.pos_y = x_est[1]
-        self.orientation = x_est[2]
+        self.yaw = x_est[2]
 
         if self.go_to_target:
             self.__move_to_target()
@@ -68,12 +73,19 @@ class MapController():
         return x_est[0], x_est[1], x_est[2]
 
     def get_position(self):
-        return self.pos_x, self.pos_y, self.orientation
+        return self.pos_x, self.pos_y, self.yaw
     
     def reset_position(self):
         self.pos_x = 0.0
         self.pos_y = 0.0
         self.pos_estimator.reset_position()
+
+    def reset_map(self):
+        self.lidar_estimator.reset_map()
+
+    def clear_map(self):
+        """Alias to reset_map for clarity in higher level code."""
+        self.reset_map()
 
     def stop(self):
         self.go_to_target = False
@@ -90,7 +102,7 @@ class MapController():
         error_y = self.target_y - self.pos_y
         distance = math.hypot(error_x, error_y)
         angle_to_target = math.atan2(error_y, error_x)
-        angle_error = angle_to_target - self.orientation
+        angle_error = angle_to_target - self.yaw
         angle_error = math.atan2(math.sin(angle_error), math.cos(angle_error))  # Normalize
 
         # Stop if close enough to target
@@ -146,8 +158,8 @@ class MapController():
         # Indicate orientation with an arrow
         arrow_length = 0.5
         ax.arrow(self.pos_x, self.pos_y,
-                 arrow_length * math.cos(self.orientation),
-                 arrow_length * math.sin(self.orientation),
+                 arrow_length * math.cos(self.yaw),
+                 arrow_length * math.sin(self.yaw),
                  head_width=0.2, head_length=0.2, fc='blue', ec='blue')
 
         buffer = io.BytesIO()
@@ -200,8 +212,11 @@ class MapController():
         # render lidar data
         lidar_points = []
         for lidar_angle, lidar_distance in zip(self.base_ctrl.rl.lidar_angles_show, self.base_ctrl.rl.lidar_distances_show):
-            lidar_x = int(lidar_distance * np.cos(lidar_angle) * 0.05)
-            lidar_y = int(lidar_distance * np.sin(lidar_angle) * 0.05) * -1
+            # lidar distances are in mm from ReadLine.parse_lidar_frame - convert to meters
+            # distances are already stored in meters by ReadLine.parse_lidar_frame
+            distance_m = lidar_distance
+            lidar_x = int(distance_m * np.cos(lidar_angle))  # pixels for viz
+            lidar_y = int(distance_m * np.sin(lidar_angle)) * -1
             lidar_points.append((lidar_x, lidar_y))
 
         
@@ -214,6 +229,15 @@ class MapController():
         ax.grid(True)
         for point in lidar_points:
             ax.plot(point[0], point[1], 'bo', markersize=2)
+        # Plot current built map (if exists)
+        map_pts = self.get_map_points()
+        if map_pts is not None and map_pts.shape[0] > 0:
+            map_px = (map_pts * 100).astype(int)
+            # To keep within the same coordinate system centered at robot, convert
+            for mx, my in map_px:
+                ax.plot(mx, -my, 'r.', markersize=1)
+        # Robot position marker at center
+        ax.plot(0, 0, 'gx', markersize=6)
 
         buffer = io.BytesIO()
         fig.savefig(buffer, format='jpeg')
@@ -223,6 +247,65 @@ class MapController():
         buffer.close()
 
         return lidar_graph
+
+    def get_lidar_points_m(self) -> np.ndarray:
+        """Return lidar points in meters as an Nx2 numpy array.
+
+        Uses the current contents of `self.base_ctrl.rl.lidar_angles_show` and
+        `self.base_ctrl.rl.lidar_distances_show` and converts to (x, y) in meters
+        relative to the robot frame (LIDAR origin).
+        """
+        angles = np.asarray(self.base_ctrl.rl.lidar_angles_show, dtype=float)
+        distances = np.asarray(self.base_ctrl.rl.lidar_distances_show, dtype=float)
+        if angles.size == 0 or distances.size == 0:
+            return np.empty((0, 2))
+        # distances in rl.lidar_distances_show are expected to be in meters
+        distances_m = distances
+        xs = distances_m * np.cos(angles)
+        ys = distances_m * np.sin(angles)
+        pts = np.column_stack((xs, ys))
+        return pts
+
+    def get_map_points(self) -> np.ndarray:
+        return self.lidar_estimator.get_map()
+
+    def estimate_pose_from_lidar(self, map_points: np.ndarray = None) -> Tuple[float, float, float]:
+        """Estimate robot pose (x, y, yaw) using lidar scan.
+
+        If `map_points` is provided, an ICP alignment will be performed and
+        the pose is returned in the map coordinate frame. If no `map_points`
+        are passed, then this will compute a PCA-based heading (yaw) and
+        return (0, 0, yaw) because a global position cannot be inferred from
+        a single scan without a reference map.
+        """
+        pts = self.get_lidar_points_m()
+        if pts.shape[0] == 0:
+            return 0.0, 0.0, 0.0
+
+        # Use the internal estimator if no external map provided; otherwise
+        # perform ICP against the supplied map.
+        if map_points is not None and len(map_points) > 0:
+            estimator = LidarPoseEstimator()
+            odo_pose = (self.pos_x, self.pos_y, self.yaw)
+            tx, ty, yaw = estimator.estimate_pose_icp(pts, map_points, odometry_pose=odo_pose)
+            # Update internal pose to map-aligned pose
+            self.pos_x = tx
+            self.pos_y = ty
+            self.yaw = yaw
+            return tx, ty, yaw
+        else:
+            # Register scan into internal map (build the map incrementally)
+            odo_pose = (self.pos_x, self.pos_y, self.yaw)
+            tx, ty, yaw = self.lidar_estimator.add_scan_to_map(pts, odometry_pose=odo_pose, fuse_with_odometry=True, odo_weight=0.6, max_match_distance=f['map_config'].get('map_max_match_distance', 0.6), icp_max_iters=f['map_config'].get('icp_max_iters', 50), icp_tolerance=f['map_config'].get('icp_tolerance', 1e-5), downsample_resolution=f['map_config'].get('map_resolution_m', 0.02))
+            # If no ICP occurred yet, fallback to PCA heading
+            if tx is None:
+                yaw = self.lidar_estimator.estimate_pose_pca(pts)
+                tx, ty = self.pos_x, self.pos_y
+            # Without map, we can't compute x/y in the map frame; keep previous
+            # position or set to zero. We'll return a yaw with x/y = current
+            # self.pos_x/self.pos_y so the caller can decide how to fuse.
+            self.yaw = yaw
+            return self.pos_x, self.pos_y, yaw
 
     
     

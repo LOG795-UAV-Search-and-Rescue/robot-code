@@ -29,6 +29,20 @@ The upper computer communicates with the lower computer (the robot's driver base
 - Video Recording
 - Real-time position tracking
 
+## LIDAR Mapping and Pose Estimation
+
+This project includes a lightweight LIDAR-based pose estimation and incremental mapping system:
+- `lidar_pose.py`: contains `LidarPoseEstimator` which supports PCA heading estimation, ICP scan matching, and incremental map building via `add_scan_to_map()`.
+- `map_ctrl.py`: integrates the estimator with base odometry. If no map is present, scans are registered into a growing global point cloud and ICP uses odometry as an initial guess to refine pose.
+
+Usage:
+- Call `map_ctrl.estimate_pose_from_lidar()` to register the latest scan with the map and obtain the robot pose (x, y, yaw). The method will use odometry from the base as an initial guess to improve convergence.
+- `map_ctrl.get_map_points()` returns the current global map as an Nx2 array (meters).
+- Use `map_ctrl.reset_map()` to clear the global map and start mapping anew.
+
+Notes:
+- This is a simple SLAM-style approach (not a full SLAM system). It works well for small indoor environments and is intended as a starting point. For large-scale mapping or robust loop-closure, consider integrating established SLAM libraries (e.g., RTAB-Map / Cartographer / Open3D).
+
 ## Quick Install
 See [ugv_jetson's Quick Install](https://github.com/waveshareteam/ugv_jetson#quick-install) repository.
 

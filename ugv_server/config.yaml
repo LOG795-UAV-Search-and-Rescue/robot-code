@@ -16,6 +16,8 @@ base_config:
   add_osd: true
   use_lidar: true
   extra_sensor: false
+  # Units sent by the lidar for distances: 'm' for meters or 'mm' for millimeters
+  lidar_units: 'm'
   main_type: 2
   module_type: 0
   robot_name: UGV Rover
@@ -113,6 +115,12 @@ upd_control:
 map_config:
   wheelbase_m: 0.172
   alpha: 1
+  # Map and LIDAR pose estimation configuration
+  map_resolution_m: 0.02
+  map_max_points: 200000
+  map_max_match_distance: 0.6
+  icp_max_iters: 50
+  icp_tolerance: 1e-05
   max_linear_speed: 0.5
   max_angular_speed: 1.0
   kp_linear: 1.0
