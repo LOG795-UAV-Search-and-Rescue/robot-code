@@ -5,6 +5,9 @@ import yaml, os
 import subprocess
 import sys
 import atexit
+import socket
+import base64
+import hashlib
 
 def set_default_sink(device_name):
     try:
@@ -355,16 +358,71 @@ def audio_stop():
     audio_ctrl.stop()
     return jsonify({'success': 'Audio stop'})
 
+WS_CLIENTS = []
+
+def ws_accept_client(conn):
+    try:
+        data = conn.recv(1024).decode()
+        if "Sec-WebSocket-Key" not in data:
+            conn.close()
+            return
+
+        key = None
+        for line in data.split("\r\n"):
+            if "Sec-WebSocket-Key" in line:
+                key = line.split(":")[1].strip()
+
+        magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+        accept = base64.b64encode(hashlib.sha1((key + magic).encode()).digest())
+
+        resp = (
+            "HTTP/1.1 101 Switching Protocols\r\n"
+            "Upgrade: websocket\r\n"
+            "Connection: Upgrade\r\n"
+            "Sec-WebSocket-Accept: " + accept.decode() + "\r\n\r\n"
+        )
+        conn.send(resp.encode())
+        WS_CLIENTS.append(conn)
+    except:
+        conn.close()
+
+
+def ws_broadcast(msg):
+    frame = b"\x81" + chr(len(msg)).encode() + msg.encode()
+    dead = []
+    for c in WS_CLIENTS:
+        try:
+            c.send(frame)
+        except:
+            dead.append(c)
+    for d in dead:
+        WS_CLIENTS.remove(d)
 
 def rover_pose_broadcast_loop():
+    udp_ip = "192.168.8.1"   # IP of the DRONE as seen from the rover
+    udp_port = 5006          # UDP port the drone will listen on
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
     while True:
         try:
-            x, y, o = map_ctrl.get_position()   # orientation 'o' already available
+            x, y, o = map_ctrl.get_position()   # rover position + orientation
             packet = f"ROVER,{x:.3f},{y:.3f},{o:.3f}"
-            ws_broadcast(packet)
-        except:
-            pass
-        time.sleep(0.05)   # 20 Hz broadcast rate
+            # Example: "ROVER,-0.005,0.000,-3.071"
+            sock.sendto(packet.encode("utf-8"), (udp_ip, udp_port))
+        except Exception as e:
+            print("[ROVER_POSE]", e)
+
+        time.sleep(0.1)  # 10 Hz is enough
+
+
+def start_ws_server():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("0.0.0.0", 8765))
+    s.listen(5)
+    print("[WS] Rover WebSocket on ws://0.0.0.0:8765")
+    while True:
+        conn, addr = s.accept()
+        threading.Thread(target=ws_accept_client, args=(conn,), daemon=True).start()
 
 # Web socket
 
@@ -631,9 +689,13 @@ if __name__ == "__main__":
     data_update_thread = threading.Thread(target=update_data_loop, daemon=True)
     data_update_thread.start()
     
-    #rover pose thread start
     rover_ws_thread = threading.Thread(target=rover_pose_broadcast_loop, daemon=True)
     rover_ws_thread.start()
+
+    
+    #rover pose thread start
+    ws_thread = threading.Thread(target=start_ws_server, daemon=True)
+    ws_thread.start()
 
     # base data update
     base_update_thread = threading.Thread(target=base_data_loop, daemon=True)
