@@ -134,6 +134,8 @@ class MapController():
         # Normalize angle error to [-pi, pi]
         angle_error = (angle_error + math.pi) % (2 * math.pi) - math.pi
 
+        print(error_x, error_y, distance, angle_to_target, angle_error)
+
         # Stop if close enough to target
         if abs(distance) < f['map_config']['position_tolerance']:
             self.go_to_target = False
