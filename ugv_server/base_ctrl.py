@@ -69,7 +69,14 @@ class ReadLine:
 			self.lidar_angles.append(np.radians(start_angle + i * 0.83333 + 180))
 			# lidar_angles.append(np.radians(start_angle + end_angle))
 			# store distances in meters. If the lidar reports mm, convert to m
-			self.lidar_distances.append(float(distance))
+			try:
+				units = f.get('base_config', {}).get('lidar_units', 'm')
+			except Exception:
+				units = 'm'
+			if units == 'mm':
+				self.lidar_distances.append(distance / 1000.0)
+			else:
+				self.lidar_distances.append(float(distance))
 		# end_angle = (data[43] << 8 | data[42]) * 0.01
 		# timestamp = data[45] << 8 | data[44]
 		# crc = data[46]

@@ -17,7 +17,7 @@ base_config:
   use_lidar: true
   extra_sensor: false
   # Units sent by the lidar for distances: 'm' for meters or 'mm' for millimeters
-  lidar_units: 'm'
+  lidar_units: "mm"
   main_type: 2
   module_type: 0
   robot_name: UGV Rover
@@ -72,13 +72,13 @@ code:
 cv:
   aimed_error: 8
   color_lower:
-  - 101
-  - 50
-  - 38
+    - 101
+    - 50
+    - 38
   color_upper:
-  - 110
-  - 255
-  - 255
+    - 110
+    - 255
+    - 255
   default_color: blue
   min_radius: 12
   sampling_rad: 25
@@ -127,5 +127,3 @@ map_config:
   kp_angular: 2.0
   position_tolerance: 0.025
   angular_tolerance: 0.25
-
-
