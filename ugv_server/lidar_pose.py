@@ -340,6 +340,10 @@ class LidarPoseEstimator:
 
         tx, ty = t_total[0], t_total[1]
 
+
+        if abs(tx) < 0.01 and abs(ty) < 0.01 and abs(yaw) < 0.01:
+            return 0.0, 0.0, 0.0
+        
         self.last_scan = scan.copy()
 
         print((tx, ty, yaw))
