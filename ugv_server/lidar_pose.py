@@ -292,9 +292,6 @@ class LidarPoseEstimator:
         if (abs(self.last_scan.shape[0] - scan.shape[0]) > 20):
             return 0.0, 0.0, 0.0
 
-        print(self.last_scan.shape)
-        print(scan.shape)
-
         # Initial transform: identity
         R_total = np.eye(2)
         t_total = np.zeros(2)
