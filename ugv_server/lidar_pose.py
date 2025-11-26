@@ -181,6 +181,7 @@ class LidarPoseEstimator:
 
         If `ref_map` is None or empty, raises ValueError.
         """
+        tolerance = float(tolerance)
         scan = np.asarray(scan, dtype=float)
         ref_map = np.asarray(ref_map, dtype=float)
         if scan.shape[0] == 0:
@@ -232,12 +233,6 @@ class LidarPoseEstimator:
             if src_matched2.shape[0] == 0:
                 break
             err = float(np.mean(np.linalg.norm(dst_matched2 - src_matched2, axis=1)))
-
-            diff = float(prev_error - err)
-
-            print(type(diff), type(tolerance))
-
-            print(diff < float(tolerance))
 
             if abs(prev_error - err) < tolerance:
                 break
