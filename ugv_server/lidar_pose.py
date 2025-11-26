@@ -197,7 +197,7 @@ class LidarPoseEstimator:
             R_total = np.eye(2)
             t_total = np.zeros(2)
 
-        prev_error = float(200000.0)
+        prev_error = float('inf')
 
         for i in range(max_iters):
             # Transform the scan points with current estimate
@@ -236,6 +236,7 @@ class LidarPoseEstimator:
             print(prev_error)
             print(err)
             print(tolerance)
+            print(abs(prev_error - err))
 
             if abs(prev_error - err) < tolerance:
                 break
