@@ -48,10 +48,10 @@ class OdometryEstimator:
         delta_d = (delta_d_r + delta_d_l) / 2.0
         
         # Change in orientation based purely on wheel odometry
-        delta_theta_odom = (delta_d_r - delta_d_l) / self.WHEELBASE
+        delta_theta_odom = (delta_d_r - delta_d_l) / self.WHEELBASE * 2.0
         
         # Average heading used for calculating linear displacement
-        theta_avg = self.x_est[2] + (delta_theta_odom / 2.0)
+        theta_avg = self.x_est[2] + delta_theta_odom
 
         # Calculate linear displacement in the global frame
         delta_x = delta_d * math.cos(theta_avg)
@@ -59,7 +59,7 @@ class OdometryEstimator:
 
         self.prev_odl = odl
         self.prev_odr = odr
-        
+
         # Update position
         return delta_x, delta_y, delta_theta_odom
 
