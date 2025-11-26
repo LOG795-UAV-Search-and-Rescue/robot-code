@@ -233,12 +233,7 @@ class LidarPoseEstimator:
                 break
             err = float(np.mean(np.linalg.norm(dst_matched2 - src_matched2, axis=1)))
 
-            print(prev_error)
-            print(err)
-            print(tolerance)
             diff = float(prev_error - err)
-            print(diff)
-            print(abs(diff))
             print(diff < tolerance)
 
             if abs(prev_error - err) < tolerance:
