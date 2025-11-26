@@ -64,6 +64,7 @@ class MapController():
         data = base_ctrl.feedback_data()
         while data is None or 'odl' not in data or 'odr' not in data:
             time.sleep(0.05)
+            print(data)
             data = base_ctrl.feedback_data()
         self.odometry_start = (data['odl'], data['odr'])
 
