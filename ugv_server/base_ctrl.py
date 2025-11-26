@@ -64,6 +64,10 @@ class ReadLine:
 		for i in range(0, self.ANGLE_PER_FRAME):
 			offset = 6 + i * 3
 			distance = data[offset+1] << 8 | data[offset]
+
+			if(distance > 2000 or distance < 50):
+				continue
+
 			confidence = data[offset+2]
 			# lidar_angles.append(np.radians(start_angle + i * 0.167))
 			self.lidar_angles.append(np.radians(start_angle + i * 0.83333 + 180))
