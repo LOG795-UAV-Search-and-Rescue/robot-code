@@ -288,6 +288,9 @@ class LidarPoseEstimator:
         if self.last_scan.shape[0] == 0:
             self.last_scan = scan.copy()
             return 0.0, 0.0, 0.0
+        
+        if (abs(self.last_scan.shape[0] - scan.shape[0]) > 50):
+            return 0.0, 0.0, 0.0
 
         print(self.last_scan.shape)
         print(scan.shape)
