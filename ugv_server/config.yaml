@@ -113,7 +113,7 @@ upd_control:
   udp_port: 5005
   quality_min: 30
 map_config:
-  wheelbase_m: 0.23
+  wheelbase_m: 0.215
   alpha: 1
   # Map and LIDAR pose estimation configuration
   map_resolution_m: 0.02
