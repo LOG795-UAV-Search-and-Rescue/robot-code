@@ -65,7 +65,7 @@ class ReadLine:
 			offset = 6 + i * 3
 			distance = data[offset+1] << 8 | data[offset]
 
-			if(distance > 2000 or distance < 600):
+			if(distance > 2000 or distance < 300):
 				continue
 
 			confidence = data[offset+2]
