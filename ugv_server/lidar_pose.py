@@ -286,9 +286,6 @@ class LidarPoseEstimator:
         if scan.shape[0] == 0:
             raise ValueError("Scan must contain points")
         if self.last_scan.shape[0] == 0:
-            raise ValueError("Reference map must contain points")
-        
-        if self.last_scan.size == 0:
             self.last_scan = scan.copy()
             return 0.0, 0.0, 0.0
 
