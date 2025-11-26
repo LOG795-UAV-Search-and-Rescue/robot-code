@@ -23,7 +23,7 @@ base_config:
   robot_name: UGV Rover
   sbc_version: 0.93
   speed_ratio_l: 1.0
-  speed_ratio_r: 0.9
+  speed_ratio_r: 0.99
 cmd_config:
   cmd_arm_ctrl_ui: 144
   cmd_gimbal_base_ctrl: 141
