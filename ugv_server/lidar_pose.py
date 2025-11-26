@@ -46,6 +46,7 @@ class LidarPoseEstimator:
         - max_map_points: maximum retained points in the global map to bound memory
         """
         self.global_map = np.empty((0, 2), dtype=float)
+        self.last_scan = np.empty((0, 2), dtype=float)
         self.map_resolution = float(map_resolution)
         self.max_map_points = int(max_map_points)
         self._kdtree = None
@@ -260,6 +261,83 @@ class LidarPoseEstimator:
             return fused_x, fused_y, fused_yaw
 
         return tx, ty, yaw
+    
+
+    def estimate_pose_icp2(self, scan: np.ndarray, max_iters: int = 50, tolerance: float = 1e-5, max_match_distance: Optional[float] = None) -> Tuple[float, float, float]:
+        """Align `scan` to `ref_map` using Iterative Closest Point (ICP) and return
+        the pose (x, y, yaw) of the scan in the `ref_map` coordinate frame.
+
+        Parameters:
+        - scan: Nx2 array of scan points (in scan/robot frame)
+        - max_iters: maximum ICP iterations
+        - tolerance: stop when change in error is below this
+        - max_match_distance: Optional max distance to consider matches; if
+          specified, pairs with larger distance are discarded (helps reject
+          outliers).
+
+        Returns:
+        - (x, y, yaw): translation and rotation that takes scan points into the
+          map frame.
+
+        If `ref_map` is None or empty, raises ValueError.
+        """
+        tolerance = float(tolerance)
+        scan = np.asarray(scan, dtype=float)
+        if scan.shape[0] == 0:
+            raise ValueError("Scan must contain points")
+        if self.last_scan.shape[0] == 0:
+            raise ValueError("Reference map must contain points")
+
+        # Initial transform: identity
+        R_total = np.eye(2)
+        t_total = np.zeros(2)
+
+        prev_error = float('inf')
+
+        for i in range(max_iters):
+            # Transform the scan points with current estimate
+            transformed_scan = (R_total @ scan.T).T + t_total
+
+            # Find correspondences (naive NN)
+            src_matched, dst_matched = self._closest_point_naive(transformed_scan, self.last_scan)
+
+            # Optional distance threshold
+            if max_match_distance is not None and len(src_matched) > 0:
+                ds = np.linalg.norm(dst_matched - src_matched, axis=1)
+                mask = ds <= float(max_match_distance)
+                src_matched = src_matched[mask]
+                dst_matched = dst_matched[mask]
+
+            # Compute best fit transform from transformed_scan->ref_map
+            if src_matched.shape[0] < 3:
+                # Not enough matches to compute transform reliably; stop early
+                break
+
+            R_delta, t_delta, _ = self._best_fit_transform(src_matched, dst_matched)
+
+            # Update total transform: new_T = [R_delta, t_delta] * [R_total, t_total]
+            R_total = R_delta @ R_total
+            t_total = R_delta @ t_total + t_delta
+
+            # Compute mean error
+            transformed_scan = (R_total @ scan.T).T + t_total
+            # For error, compute distances for the matched src->dst points again
+            src_matched2, dst_matched2 = self._closest_point_naive(transformed_scan, self.last_scan)
+            if src_matched2.shape[0] == 0:
+                break
+            err = float(np.mean(np.linalg.norm(dst_matched2 - src_matched2, axis=1)))
+
+            if abs(prev_error - err) < tolerance:
+                break
+            prev_error = err
+
+        yaw = math.atan2(R_total[1, 0], R_total[0, 0])
+        yaw = (yaw + math.pi) % (2 * math.pi) - math.pi
+
+        tx, ty = t_total[0], t_total[1]
+
+        return tx, ty, yaw
+
 
     def reset_map(self):
         """Clear the internal global map."""
@@ -306,7 +384,7 @@ class LidarPoseEstimator:
             pts = transformed_scan
             if downsample_resolution is None:
                 downsample_resolution = self.map_resolution
-            pts = self._downsample_points(pts, downsample_resolution)
+            pts = self._downsample_points(pts, self.map_resolution)
             self.global_map = pts
             self._build_kdtree()
             # The estimated pose is the odometry_pose (or identity)

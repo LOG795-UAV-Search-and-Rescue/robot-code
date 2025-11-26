@@ -478,12 +478,9 @@ def update_data_loop():
 
 def base_data_loop():
     while True:
+        base.rl.lidar_data_recv()
         data = base.feedback_data()
-        if (data is not None):
-            pass
-            # print_replace(f"'gx':{data['gx']},'gy':{data['gy']},'gz':{data['gz']},'ax':{data['ax']},'ay':{data['ay']},'az':{data['az']},'odl':{data['odl']},'odr':{data['odr']}")
 
-        # print_replace(json.dumps(data))
         map_ctrl.update(data)
 
 def lidar_data_loop():
@@ -698,9 +695,9 @@ if __name__ == "__main__":
 
     # lidar data update
     
-    if base.use_lidar:
-        lidar_update_thread = threading.Thread(target=lidar_data_loop, daemon=True)
-        lidar_update_thread.start()
+    # if base.use_lidar:
+    #     lidar_update_thread = threading.Thread(target=lidar_data_loop, daemon=True)
+    #     lidar_update_thread.start()
 
     # lights off
     base.lights_ctrl(0, 0)

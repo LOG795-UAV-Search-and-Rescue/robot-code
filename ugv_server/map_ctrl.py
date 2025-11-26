@@ -69,11 +69,14 @@ class MapController():
         if data is None:
             return self.pos_x, self.pos_y, self.yaw
         x_est, p = self.pos_estimator.process_data(data)
-        self.pos_x = x_est[0]
-        self.pos_y = x_est[1]
-        self.yaw = x_est[2]
+        # self.pos_x = x_est[0]
+        # self.pos_y = x_est[1]
+        # self.yaw = x_est[2]
 
-        self.pos_x, self.pos_y, self.yaw = self.estimate_pose_from_lidar()        
+        delta_x, delta_y, delta_yaw = self.estimate_pose_from_lidar()
+        self.pos_x += delta_x
+        self.pos_y += delta_y
+        self.yaw += delta_yaw
 
         if self.go_to_target:
             self.__move_to_target()
