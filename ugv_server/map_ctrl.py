@@ -143,25 +143,17 @@ class MapController():
         # Maximum velocities
         max_linear_velocity = f['map_config']['max_linear_speed']  # m/s
         max_angular_velocity = f['map_config']['max_angular_speed']  # rad/s
-
-        angular_tolerance = f['map_config']['angular_tolerance']
-        if abs(angle_error) > angular_tolerance:
-            # Rotate towards target
-            angular_velocity = kp_angular * angle_error
-            max_angular_velocity = max_angular_velocity  # rad/s
-            angular_velocity = max(-max_angular_velocity, min(max_angular_velocity, angular_velocity))
-            self.base_ctrl.base_ros_speed_ctrl(0.0, angular_velocity)
-            return
         
-
         # Calculate control commands
         linear_velocity = kp_linear * distance
+        angular_velocity = kp_angular * angle_error
 
         # Limit velocities
         linear_velocity = max(-max_linear_velocity, min(max_linear_velocity, linear_velocity))
+        angular_velocity = max(-max_angular_velocity, min(max_angular_velocity, angular_velocity))
 
         # Send commands to base controller
-        self.base_ctrl.base_ros_speed_ctrl(linear_velocity, 0.0)
+        self.base_ctrl.base_ros_speed_ctrl(linear_velocity, angular_velocity)
 
         
 
