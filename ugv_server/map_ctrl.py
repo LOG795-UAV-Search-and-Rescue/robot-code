@@ -83,11 +83,11 @@ class MapController():
         if data is None or 'odl' not in data or 'odr' not in data:
             return self.pos_x, self.pos_y, self.yaw
         
-        odometry_pose_delta = self.pos_estimator.process_data(data['odl'], data['odr'])
+        delta_x, delta_y, delta_yaw = self.pos_estimator.process_data(data['odl'], data['odr'])
 
-        print(odometry_pose_delta)
+        print(delta_x, delta_y, delta_yaw)
 
-        delta_x, delta_y, delta_yaw = self.lidar_estimator.correct_pos_delta(self.get_lidar_points_m(), odometry_pose_delta=odometry_pose_delta)
+        # delta_x, delta_y, delta_yaw = self.lidar_estimator.correct_pos_delta(self.get_lidar_points_m(), odometry_pose_delta=odometry_pose_delta)
         self.pos_x += delta_x
         self.pos_y += delta_y
         self.yaw += delta_yaw
