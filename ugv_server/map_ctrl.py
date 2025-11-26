@@ -73,7 +73,7 @@ class MapController():
         # self.pos_y = x_est[1]
         # self.yaw = x_est[2]
 
-        delta_x, delta_y, delta_yaw = self.lidar_estimator.estimate_pose_icp2()
+        delta_x, delta_y, delta_yaw = self.lidar_estimator.estimate_pose_icp2(self.get_lidar_points_m())
         self.pos_x += delta_x
         self.pos_y += delta_y
         self.yaw += delta_yaw
