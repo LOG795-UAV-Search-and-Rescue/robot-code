@@ -162,7 +162,7 @@ class LidarPoseEstimator:
 
         return R, t, yaw
 
-    def estimate_pose_icp(self, scan: np.ndarray, ref_map: np.ndarray, max_iters: int = 50, tolerance: float = 0.00001, max_match_distance: Optional[float] = None, odometry_pose: Optional[Tuple[float, float, float]] = None, fuse_with_odometry: bool = False, odo_weight: float = 0.5) -> Tuple[float, float, float]:
+    def estimate_pose_icp(self, scan: np.ndarray, ref_map: np.ndarray, max_iters: int = 50, tolerance: float = 1e-5, max_match_distance: Optional[float] = None, odometry_pose: Optional[Tuple[float, float, float]] = None, fuse_with_odometry: bool = False, odo_weight: float = 0.5) -> Tuple[float, float, float]:
         """Align `scan` to `ref_map` using Iterative Closest Point (ICP) and return
         the pose (x, y, yaw) of the scan in the `ref_map` coordinate frame.
 
@@ -237,7 +237,7 @@ class LidarPoseEstimator:
 
             print(type(diff), type(tolerance))
 
-            print(diff < tolerance)
+            print(diff < float(tolerance))
 
             if abs(prev_error - err) < tolerance:
                 break
