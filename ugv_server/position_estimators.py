@@ -8,7 +8,7 @@ class OdometryEstimator:
     using wheel odometry data only.
     """
     
-    def __init__(self, wheelbase_m):
+    def __init__(self, wheelbase_m, start_odl=0.0, start_odr=0.0):
         """
         Initializes the odometry calculator.
         :param wheelbase_m: The distance between the centers of the wheels (in meters).
@@ -20,9 +20,8 @@ class OdometryEstimator:
         self.P = np.diag([0.1, 0.1, 0.1]) # Initial uncertainty
 
         # Previous sensor readings for calculating deltas
-        self.prev_t = 0
-        self.prev_odl = 0.0
-        self.prev_odr = 0.0
+        self.prev_odl = start_odl
+        self.prev_odr = start_odr
 
     def reset_position(self):
         """
@@ -30,26 +29,15 @@ class OdometryEstimator:
         """
         self.x_est = np.array([0.0, 0.0, self.x_est[2]])
 
-    def process_data(self, data):
-        return self.update(data)
+    def process_data(self, odl, odr):
+        return self.update(odl, odr)
 
-    def update(self, data):
+    def update(self, odl, odr):
         """
         Processes a new data packet and updates the robot's pose.
         :param data: The new dictionary of sensor readings.
         :return: A tuple of the new pose (x, y, theta).
         """
-        # 1. Extract and Calculate Time Delta (dt)
-        t = float(time.time())
-        dt = (t - self.prev_t)
-
-        if dt <= 0:
-            return self.x_est, self.P
-
-        # 2. Extract Wheel Odometry Data
-        odl = data.get('odl', self.prev_odl)
-        odr = data.get('odr', self.prev_odr)
-        
         # Calculate distance deltas (assuming 'odl' and 'odr' are in meters)
         delta_d_l = odl - self.prev_odl
         delta_d_r = odr - self.prev_odr
@@ -70,20 +58,17 @@ class OdometryEstimator:
         delta_y = delta_d * math.sin(theta_avg)
 
         # Update position
-        self.x_est[0] += delta_x
-        self.x_est[1] += delta_y
-        self.x_est[2] += delta_theta_odom
-        
-        # Normalize theta to be within -pi to pi
-        self.x_est[2] = math.atan2(math.sin(self.x_est[2]), math.cos(self.x_est[2]))
+        return delta_x, delta_y, delta_theta_odom
 
-        # 5. Store current readings for the next iteration
-        self.prev_t = t
-        self.prev_odl = odl
-        self.prev_odr = odr
+        # # Normalize theta to be within -pi to pi
+        # self.x_est[2] = math.atan2(math.sin(self.x_est[2]), math.cos(self.x_est[2]))
 
-        # 6. Return the final fused pose
-        return self.x_est, self.P
+        # # 5. Store current readings for the next iteration
+        # self.prev_odl = odl
+        # self.prev_odr = odr
+
+        # # 6. Return the final fused pose
+        # return self.x_est, self.P
 
 
 class OdometryFuser:

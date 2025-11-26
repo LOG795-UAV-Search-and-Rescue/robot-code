@@ -263,45 +263,27 @@ class LidarPoseEstimator:
         return tx, ty, yaw
     
 
-    def estimate_pose_icp2(self, scan: np.ndarray, max_iters: int = 50, tolerance: float = 1e-5, odometry_pose: Optional[Tuple[float, float, float]] = None, max_match_distance: Optional[float] = None) -> Tuple[float, float, float]:
-        """Align `scan` to `ref_map` using Iterative Closest Point (ICP) and return
-        the pose (x, y, yaw) of the scan in the `ref_map` coordinate frame.
-
-        Parameters:
-        - scan: Nx2 array of scan points (in scan/robot frame)
-        - max_iters: maximum ICP iterations
-        - tolerance: stop when change in error is below this
-        - max_match_distance: Optional max distance to consider matches; if
-          specified, pairs with larger distance are discarded (helps reject
-          outliers).
-
-        Returns:
-        - (x, y, yaw): translation and rotation that takes scan points into the
-          map frame.
-
-        If `ref_map` is None or empty, raises ValueError.
-        """
+    def correct_pos_delta(self, scan: np.ndarray, max_iters: int = 50, tolerance: float = 1e-5, odometry_pose_delta: Optional[Tuple[float, float, float]] = None, max_match_distance: Optional[float] = None) -> Tuple[float, float, float]:
         tolerance = float(tolerance)
+
         scan = np.asarray(scan, dtype=float)
         if scan.shape[0] == 0:
             raise ValueError("Scan must contain points")
         if self.last_scan.shape[0] == 0:
             self.last_scan = scan.copy()
             return 0.0, 0.0, 0.0
-        
         if (abs(self.last_scan.shape[0] - scan.shape[0]) > 20):
             return 0.0, 0.0, 0.0
 
         # Initial transform: identity OR initialize based on odometry_pose
-        if odometry_pose is not None:
-            odo_x, odo_y, odo_yaw = odometry_pose
+        if odometry_pose_delta is not None:
+            odo_x, odo_y, odo_yaw = odometry_pose_delta
             if (odo_x, odo_y, odo_yaw) == (0.0, 0.0, 0.0):
                 return 0.0, 0.0, 0.0
             R_total = np.array([[math.cos(odo_yaw), -math.sin(odo_yaw)], [math.sin(odo_yaw), math.cos(odo_yaw)]])
             t_total = np.array([odo_x, odo_y])
         else:
-            R_total = np.eye(2)
-            t_total = np.zeros(2)
+            return 0.0, 0.0, 0.0
 
         prev_error = float('inf')
 
@@ -349,10 +331,12 @@ class LidarPoseEstimator:
 
 
         if abs(tx) < 0.01 and abs(ty) < 0.01 and abs(yaw) < 0.01:
-            return 0.0, 0.0, 0.0
+            return odo_x, odo_y, odo_yaw
         
         self.last_scan = scan.copy()
 
+        
+        print((odo_x, odo_y, odo_yaw))
         print((tx, ty, yaw))
 
         return tx, ty, yaw

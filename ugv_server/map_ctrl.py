@@ -51,11 +51,24 @@ def print_replace(string):
 
 class MapController():
     def __init__(self, base_ctrl: BaseController):
-        self.pos_estimator = OdometryEstimator(wheelbase_m=f['map_config']['wheelbase_m'])
         # self.pos_estimator = OdometryFuser(wheelbase_m=f['map_config']['wheelbase_m'], alpha=f['map_config']['alpha'])
         # self.pos_estimator = OdometryFuserMAG(wheelbase_m=f['map_config']['wheelbase_m'])
         # self.pos_estimator = DifferentialDriveEKF(wheelbase_m=f['map_config']['wheelbase_m'], dt=f['map_config']['dt'])
         self.base_ctrl = base_ctrl
+
+        self.lidar_estimator = LidarPoseEstimator(map_resolution=f['map_config'].get('map_resolution_m', 0.02), max_map_points=f['map_config'].get('map_max_points', 200000))
+
+
+        # get first position from base controller
+        
+        data = base_ctrl.feedback_data()
+        while data is None or 'odl' not in data or 'odr' not in data:
+            time.sleep(0.05)
+            data = base_ctrl.feedback_data()
+        self.odometry_start = (data['odl'], data['odr'])
+
+        self.pos_estimator = OdometryEstimator(wheelbase_m=f['map_config']['wheelbase_m'], start_odl=self.odometry_start[0], start_odr=self.odometry_start[1])
+
         self.pos_x = 0.0
         self.pos_y = 0.0
         self.yaw = 0.0
@@ -63,17 +76,17 @@ class MapController():
         self.target_y = 0.0
         self.go_to_target = False
         # Create LidarPoseEstimator with configuration values
-        self.lidar_estimator = LidarPoseEstimator(map_resolution=f['map_config'].get('map_resolution_m', 0.02), max_map_points=f['map_config'].get('map_max_points', 200000))
 
-    def update(self, data):
-        if data is None:
+    def update(self):
+        data = self.base_ctrl.feedback_data()
+        if data is None or 'odl' not in data or 'odr' not in data:
             return self.pos_x, self.pos_y, self.yaw
-        x_est, p = self.pos_estimator.process_data(data)
-        # self.pos_x = x_est[0]
-        # self.pos_y = x_est[1]
-        # self.yaw = x_est[2]
+        
+        odometry_pose_delta = self.pos_estimator.process_data(data['odl'], data['odr'])
 
-        delta_x, delta_y, delta_yaw = self.lidar_estimator.estimate_pose_icp2(self.get_lidar_points_m())
+        print(odometry_pose_delta)
+
+        delta_x, delta_y, delta_yaw = self.lidar_estimator.correct_pos_delta(self.get_lidar_points_m(), odometry_pose_delta=odometry_pose_delta)
         self.pos_x += delta_x
         self.pos_y += delta_y
         self.yaw += delta_yaw
