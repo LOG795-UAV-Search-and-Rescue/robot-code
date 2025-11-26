@@ -255,8 +255,8 @@ class OpencvFuncs():
         # render lidar data
         lidar_points = []
         for lidar_angle, lidar_distance in zip(self.base_ctrl.rl.lidar_angles_show, self.base_ctrl.rl.lidar_distances_show):
-            lidar_x = int(lidar_distance * np.cos(lidar_angle) * 0.05) + 320
-            lidar_y = int(lidar_distance * np.sin(lidar_angle) * 0.05) + 240
+            lidar_x = int(lidar_distance * np.cos(lidar_angle) * 50) + 320
+            lidar_y = int(lidar_distance * np.sin(lidar_angle) * 50) + 240
             lidar_points.append((lidar_x, lidar_y))
 
         for lidar_point in lidar_points:
