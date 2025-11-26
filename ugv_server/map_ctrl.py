@@ -134,8 +134,6 @@ class MapController():
         # Normalize angle error to [-pi, pi]
         angle_error = (angle_error + math.pi) % (2 * math.pi) - math.pi
 
-        print(error_x, error_y, distance, angle_to_target, angle_error)
-
         # Stop if close enough to target
         if abs(distance) < f['map_config']['position_tolerance']:
             self.go_to_target = False
@@ -162,12 +160,14 @@ class MapController():
 
         # Calculate control commands
         linear_velocity = kp_linear * distance
+        angular_velocity = kp_angular * angle_error
 
         # Limit velocities
         linear_velocity = max(-max_linear_velocity, min(max_linear_velocity, linear_velocity))
+        angular_velocity = max(-max_angular_velocity, min(max_angular_velocity, angular_velocity))
 
         # Send commands to base controller
-        self.base_ctrl.base_ros_speed_ctrl(linear_velocity, 0.0)
+        self.base_ctrl.base_ros_speed_ctrl(linear_velocity, angular_velocity)
 
         
 
