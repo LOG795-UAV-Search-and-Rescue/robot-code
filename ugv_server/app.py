@@ -568,19 +568,19 @@ class UDPHandler(socketserver.BaseRequestHandler):
         if msg == "MODE_CONTINUOUS":
             UDPHandler.mode_follow = True
             UDPHandler.cmd_triggered = False
-            # print("[MODE] Continuous follow mode activated.")
+            print("[MODE] Continuous follow mode activated.")
             return
 
         if msg == "MODE_COME_TO_ME":
             UDPHandler.mode_follow = False
             UDPHandler.cmd_triggered = False
-            # print("[MODE] Come-To-Me mode activated. Rover will stop.")
+            print("[MODE] Come-To-Me mode activated. Rover will stop.")
             map_ctrl.stop()
             return
 
         if msg == "CMD_COME_TO_ME":
             UDPHandler.cmd_triggered = True
-            # print(f"[CMD] Come-To-Me command triggered → going to last drone position ({self.last_good_x:.2f}, {self.last_good_y:.2f})")
+            print(f"[CMD] Come-To-Me command triggered → going to last drone position ({self.last_good_x:.2f}, {self.last_good_y:.2f})")
             map_ctrl.go_to(self.last_good_x, self.last_good_y)
             return
 
@@ -613,14 +613,14 @@ class UDPHandler(socketserver.BaseRequestHandler):
 
         # Update positions
         rover_x, rover_y, o = map_ctrl.get_position()
-        print_replace(f"[DATA] Drone=({x:.2f}, {y:.2f}, Q={q:.0f}) | Rover=(x={rover_x:.2f}, y={rover_y:.2f}, o={o:.1f} rad)")
+        print(f"[DATA] Drone=({x:.2f}, {y:.2f}, Q={q:.0f}) | Rover=(x={rover_x:.2f}, y={rover_y:.2f}, o={o:.1f} rad)")
 
         self.drone_x, self.drone_y, self.quality = x, y, q
         self.last_good_x, self.last_good_y = x, y
 
         # Follow logic
         if UDPHandler.mode_follow and not UDPHandler.cmd_triggered:
-            # print(f"[FOLLOW] Following drone → moving rover to ({x:.2f}, {y:.2f})")
+            print(f"[FOLLOW] Following drone → moving rover to ({x:.2f}, {y:.2f})")
             map_ctrl.go_to(x, y)
         else:
             pass
@@ -657,9 +657,6 @@ if __name__ == "__main__":
     
     # lights off
     base.lights_ctrl(255, 255)
-
-    # set position to (0,0)
-    map_ctrl.reset_position()
     
     # play a audio file in /sounds/robot_started/
     audio_ctrl.play_random_audio("robot_started", False)

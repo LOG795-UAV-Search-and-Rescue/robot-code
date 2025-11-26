@@ -85,8 +85,6 @@ class MapController():
         
         delta_x, delta_y, delta_yaw = self.pos_estimator.process_data(data['odl'], data['odr'])
 
-        print(delta_x, delta_y, delta_yaw)
-
         # delta_x, delta_y, delta_yaw = self.lidar_estimator.correct_pos_delta(self.get_lidar_points_m(), odometry_pose_delta=odometry_pose_delta)
         self.pos_x += delta_x
         self.pos_y += delta_y
@@ -95,7 +93,7 @@ class MapController():
         if self.go_to_target:
             self.__move_to_target()
 
-        print(f"Updated Position: x={self.pos_x:.3f} m, y={self.pos_y:.3f} m, theta={math.degrees(self.yaw):.2f} deg.")
+        # print(f"Updated Position: x={self.pos_x:.3f} m, y={self.pos_y:.3f} m, theta={math.degrees(self.yaw):.2f} deg.")
         return self.pos_x, self.pos_y, self.yaw
 
     def get_position(self):
@@ -118,6 +116,7 @@ class MapController():
         self.base_ctrl.base_ros_speed_ctrl(0.0, 0.0)
 
     def go_to(self, target_x, target_y):
+        print(f"Going to target: x={target_x} m, y={target_y} m")
         self.target_x = target_x
         self.target_y = target_y
         self.go_to_target = True
