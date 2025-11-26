@@ -336,6 +336,7 @@ class LidarPoseEstimator:
 
         tx, ty = t_total[0], t_total[1]
 
+        self.last_scan = scan.copy()
         return tx, ty, yaw
 
 
