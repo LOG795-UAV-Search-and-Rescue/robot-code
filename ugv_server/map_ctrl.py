@@ -233,7 +233,7 @@ class MapController():
         if map_pts is not None and map_pts.shape[0] > 0:
             # To keep within the same coordinate system centered at robot, convert
             for mx, my in map_pts:
-                ax.plot(mx, -my, 'r.', markersize=2)
+                ax.plot(mx, my, 'r.', markersize=2)
         # Robot position marker at center
         ax.plot(0, 0, 'gx', markersize=6)
 
