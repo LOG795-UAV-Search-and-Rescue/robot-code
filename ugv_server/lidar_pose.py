@@ -328,7 +328,6 @@ class LidarPoseEstimator:
                 break
             err = float(np.mean(np.linalg.norm(dst_matched2 - src_matched2, axis=1)))
 
-            print(f"ICP Iter {i}: error={err:.6f}, matches={src_matched.shape[0]}")
             if abs(prev_error - err) < tolerance:
                 break
             prev_error = err
