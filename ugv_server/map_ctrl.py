@@ -90,6 +90,9 @@ class MapController():
         self.pos_y += delta_y
         self.yaw += delta_yaw
 
+        # Normalize yaw to [-pi, pi]
+        self.yaw = (self.yaw + math.pi) % (2 * math.pi) - math.pi
+
         if self.go_to_target:
             self.__move_to_target()
 
@@ -128,7 +131,6 @@ class MapController():
         distance = math.hypot(error_x, error_y)
         angle_to_target = math.atan2(error_y, error_x)
         angle_error = angle_to_target - self.yaw
-        angle_error = math.atan2(math.sin(angle_error), math.cos(angle_error))  # Normalize
 
         # Stop if close enough to target
         if abs(distance) < f['map_config']['position_tolerance']:
@@ -143,7 +145,17 @@ class MapController():
         # Maximum velocities
         max_linear_velocity = f['map_config']['max_linear_speed']  # m/s
         max_angular_velocity = f['map_config']['max_angular_speed']  # rad/s
+
+        angular_tolerance = f['map_config']['angular_tolerance']
+        if abs(angle_error) > angular_tolerance:
+            # Rotate towards target
+            angular_velocity = kp_angular * angle_error
+            max_angular_velocity = max_angular_velocity  # rad/s
+            angular_velocity = max(-max_angular_velocity, min(max_angular_velocity, angular_velocity))
+            self.base_ctrl.base_ros_speed_ctrl(0.0, angular_velocity)
+            return
         
+
         # Calculate control commands
         linear_velocity = kp_linear * distance
         angular_velocity = kp_angular * angle_error
