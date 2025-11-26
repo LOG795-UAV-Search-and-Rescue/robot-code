@@ -236,7 +236,7 @@ class LidarPoseEstimator:
             print(prev_error)
             print(err)
             print(tolerance)
-            diff = prev_error - err
+            diff = float(prev_error - err)
             print(diff)
             print(abs(diff))
             print(diff < tolerance)
