@@ -1,6 +1,6 @@
 from base_ctrl import BaseController
 from position_estimators import OdometryEstimator, OdometryFuser, OdometryFuserMAG, DifferentialDriveEKF
-from lidar_pose import LidarPoseEstimator, estimate_pose_from_lidar
+from lidar_pose import LidarPoseEstimator
 from typing import Tuple
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,12 +9,19 @@ import time
 import math
 import os
 import yaml
+import sys
+
+LINE_CLEAR = '\x1b[2K'
 
 # config file.
 curpath = os.path.realpath(__file__)
 thisPath = os.path.dirname(curpath)
 with open(thisPath + '/config.yaml', 'r') as yaml_file:
     f = yaml.safe_load(yaml_file)
+
+def print_replace(string):
+    sys.stdout.write(LINE_CLEAR + '\r' + string)
+    sys.stdout.flush()
 
 # --- Example Usage ---
 # WHEELBASE = 0.172  # meters
@@ -66,10 +73,12 @@ class MapController():
         self.pos_y = x_est[1]
         self.yaw = x_est[2]
 
+        self.pos_x, self.pos_y, self.yaw = self.estimate_pose_from_lidar()        
+
         if self.go_to_target:
             self.__move_to_target()
 
-        print(f"Updated Position: x={x_est[0]:.3f} m, y={x_est[1]:.3f} m, theta={math.degrees(x_est[2]):.2f} deg.")
+        print_replace(f"Updated Position: x={x_est[0]:.3f} m, y={x_est[1]:.3f} m, theta={math.degrees(x_est[2]):.2f} deg.")
         return x_est[0], x_est[1], x_est[2]
 
     def get_position(self):
