@@ -225,6 +225,8 @@ class MapController():
         lidar_points = self.get_lidar_points_m()
 
         fig, ax = plt.subplots()
+        ax.set_xlim(-2, 2)
+        ax.set_ylim(-2, 2)
         ax.set_title('Lidar Data')
         ax.set_xlabel('X Axis')
         ax.set_ylabel('Y Axis')
