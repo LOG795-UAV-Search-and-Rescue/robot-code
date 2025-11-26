@@ -57,6 +57,8 @@ class OdometryEstimator:
         delta_x = delta_d * math.cos(theta_avg)
         delta_y = delta_d * math.sin(theta_avg)
 
+        self.prev_odl = odl
+        self.prev_odr = odr
         # Update position
         return delta_x, delta_y, delta_theta_odom
 
@@ -64,8 +66,6 @@ class OdometryEstimator:
         # self.x_est[2] = math.atan2(math.sin(self.x_est[2]), math.cos(self.x_est[2]))
 
         # # 5. Store current readings for the next iteration
-        # self.prev_odl = odl
-        # self.prev_odr = odr
 
         # # 6. Return the final fused pose
         # return self.x_est, self.P
