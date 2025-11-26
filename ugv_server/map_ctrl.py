@@ -78,8 +78,8 @@ class MapController():
         if self.go_to_target:
             self.__move_to_target()
 
-        print_replace(f"Updated Position: x={x_est[0]:.3f} m, y={x_est[1]:.3f} m, theta={math.degrees(x_est[2]):.2f} deg.")
-        return x_est[0], x_est[1], x_est[2]
+        print_replace(f"Updated Position: x={self.pos_x:.3f} m, y={self.pos_y:.3f} m, theta={math.degrees(self.yaw):.2f} deg.")
+        return self.pos_x, self.pos_y, self.yaw
 
     def get_position(self):
         return self.pos_x, self.pos_y, self.yaw
