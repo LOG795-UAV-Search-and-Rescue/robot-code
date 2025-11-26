@@ -219,14 +219,7 @@ class MapController():
 
     def lidar_frame_generate(self):
         # render lidar data
-        lidar_points = []
-        for lidar_angle, lidar_distance in zip(self.base_ctrl.rl.lidar_angles_show, self.base_ctrl.rl.lidar_distances_show):
-            # lidar distances are in mm from ReadLine.parse_lidar_frame - convert to meters
-            # distances are already stored in meters by ReadLine.parse_lidar_frame
-            distance_m = lidar_distance
-            lidar_x = int(distance_m * np.cos(lidar_angle))  # pixels for viz
-            lidar_y = int(distance_m * np.sin(lidar_angle)) * -1
-            lidar_points.append((lidar_x, lidar_y))
+        lidar_points = self.get_lidar_points_m()
 
         
         fig, ax = plt.subplots()
@@ -236,15 +229,16 @@ class MapController():
         ax.set_xlabel('X Axis')
         ax.set_ylabel('Y Axis')
         ax.grid(True)
-        for point in lidar_points:
-            ax.plot(point[0], point[1], 'bo', markersize=2)
+        points = (lidar_points * 100).astype(int)
+        for x, y in points:
+            ax.plot(x, y, 'bo', markersize=1)
         # Plot current built map (if exists)
         map_pts = self.get_map_points()
         if map_pts is not None and map_pts.shape[0] > 0:
             map_px = (map_pts * 100).astype(int)
             # To keep within the same coordinate system centered at robot, convert
             for mx, my in map_px:
-                ax.plot(mx, -my, 'r.', markersize=1)
+                ax.plot(mx, -my, 'r.', markersize=2)
         # Robot position marker at center
         ax.plot(0, 0, 'gx', markersize=6)
 
