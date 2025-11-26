@@ -124,6 +124,6 @@ map_config:
   max_linear_speed: 0.5
   max_angular_speed: 1.0
   kp_linear: 1.0
-  kp_angular: 2.0
+  kp_angular: 4.0
   position_tolerance: 0.025
   angular_tolerance: 0.25
