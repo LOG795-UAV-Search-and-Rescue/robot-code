@@ -16,8 +16,9 @@ class OdometryEstimator:
         self.WHEELBASE = wheelbase_m
 
         # State variables
-        self.x_est = np.array([0.0, 0.0, 0.0])  # [x, y, theta]
-        self.P = np.diag([0.1, 0.1, 0.1]) # Initial uncertainty
+        self.yaw = 0.0      # Global Orientation (rad)
+        self.x = 0.0
+        self.y = 0.0
 
         # Previous sensor readings for calculating deltas
         self.prev_odl = start_odl
@@ -27,7 +28,8 @@ class OdometryEstimator:
         """
         Resets the odometry x and y state to the origin.
         """
-        self.x_est = np.array([0.0, 0.0, self.x_est[2]])
+        self.x = 0.0
+        self.y = 0.0
 
     def process_data(self, odl, odr):
         return self.update(odl, odr)
@@ -49,13 +51,20 @@ class OdometryEstimator:
         
         # Change in orientation based purely on wheel odometry
         delta_theta_odom = (delta_d_r - delta_d_l) / (self.WHEELBASE * 2.0)
+        
+        # Average heading used for calculating linear displacement
+        self.yaw += delta_theta_odom
+        self.yaw = (self.yaw + math.pi) % (2 * math.pi) - math.pi
 
         # Calculate linear displacement in the global frame
-        delta_x = delta_d * math.cos(delta_theta_odom)
-        delta_y = delta_d * math.sin(delta_theta_odom)
+        delta_x = delta_d * math.cos(self.yaw)
+        delta_y = delta_d * math.sin(self.yaw)
 
         self.prev_odl = odl
         self.prev_odr = odr
+
+        self.x += delta_x
+        self.y += delta_y
 
         # Update position
         return delta_x, delta_y, delta_theta_odom
