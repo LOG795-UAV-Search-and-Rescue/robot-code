@@ -23,7 +23,7 @@ base_config:
   robot_name: UGV Rover
   sbc_version: 0.93
   speed_ratio_l: 1.0
-  speed_ratio_r: 0.99
+  speed_ratio_r: 0.999999
 cmd_config:
   cmd_arm_ctrl_ui: 144
   cmd_gimbal_base_ctrl: 141
@@ -113,7 +113,7 @@ upd_control:
   udp_port: 5005
   quality_min: 30
 map_config:
-  wheelbase_m: 0.19111
+  wheelbase_m: 0.1
   alpha: 1
   # Map and LIDAR pose estimation configuration
   map_resolution_m: 0.02
