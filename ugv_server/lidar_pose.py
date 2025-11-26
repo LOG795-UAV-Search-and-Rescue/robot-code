@@ -231,7 +231,7 @@ class LidarPoseEstimator:
             src_matched2, dst_matched2 = self._closest_point_naive(transformed_scan, ref_map)
             if src_matched2.shape[0] == 0:
                 break
-            err = np.mean(np.linalg.norm(dst_matched2 - src_matched2, axis=1))
+            err = float(np.mean(np.linalg.norm(dst_matched2 - src_matched2, axis=1)))
 
             print(prev_error)
             print(err)
