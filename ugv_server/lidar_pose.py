@@ -263,7 +263,7 @@ class LidarPoseEstimator:
         return tx, ty, yaw
     
 
-    def estimate_pose_icp2(self, scan: np.ndarray, max_iters: int = 50, tolerance: float = 1e-5, max_match_distance: Optional[float] = None) -> Tuple[float, float, float]:
+    def estimate_pose_icp2(self, scan: np.ndarray, max_iters: int = 50, tolerance: float = 1e-5, odometry_pose: Optional[Tuple[float, float, float]] = None, max_match_distance: Optional[float] = None) -> Tuple[float, float, float]:
         """Align `scan` to `ref_map` using Iterative Closest Point (ICP) and return
         the pose (x, y, yaw) of the scan in the `ref_map` coordinate frame.
 
@@ -292,9 +292,16 @@ class LidarPoseEstimator:
         if (abs(self.last_scan.shape[0] - scan.shape[0]) > 20):
             return 0.0, 0.0, 0.0
 
-        # Initial transform: identity
-        R_total = np.eye(2)
-        t_total = np.zeros(2)
+        # Initial transform: identity OR initialize based on odometry_pose
+        if odometry_pose is not None:
+            odo_x, odo_y, odo_yaw = odometry_pose
+            if (odo_x, odo_y, odo_yaw) == (0.0, 0.0, 0.0):
+                return 0.0, 0.0, 0.0
+            R_total = np.array([[math.cos(odo_yaw), -math.sin(odo_yaw)], [math.sin(odo_yaw), math.cos(odo_yaw)]])
+            t_total = np.array([odo_x, odo_y])
+        else:
+            R_total = np.eye(2)
+            t_total = np.zeros(2)
 
         prev_error = float('inf')
 
