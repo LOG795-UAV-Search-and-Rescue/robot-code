@@ -131,6 +131,8 @@ class MapController():
         distance = math.hypot(error_x, error_y)
         angle_to_target = math.atan2(error_y, error_x)
         angle_error = angle_to_target - self.yaw
+        # Normalize angle error to [-pi, pi]
+        angle_error = (angle_error + math.pi) % (2 * math.pi) - math.pi
 
         # Stop if close enough to target
         if abs(distance) < f['map_config']['position_tolerance']:
