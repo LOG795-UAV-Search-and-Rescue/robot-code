@@ -59,6 +59,7 @@ class OdometryEstimator:
 
         self.prev_odl = odl
         self.prev_odr = odr
+        
         # Update position
         return delta_x, delta_y, delta_theta_odom
 
