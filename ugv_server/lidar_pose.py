@@ -289,6 +289,9 @@ class LidarPoseEstimator:
             self.last_scan = scan.copy()
             return 0.0, 0.0, 0.0
 
+        print(self.last_scan.shape)
+        print(scan.shape)
+
         # Initial transform: identity
         R_total = np.eye(2)
         t_total = np.zeros(2)
