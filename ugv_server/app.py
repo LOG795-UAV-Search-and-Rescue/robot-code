@@ -539,7 +539,7 @@ def cmd_on_boot():
 class UDPHandler(socketserver.BaseRequestHandler):
     mode_follow = True   # class variable
     cmd_triggered = False
-    quality_min = 20.0  # minimum acceptable VIO quality
+    quality_min = 40.0  # minimum acceptable VIO quality
     drone_x = 0.0
     drone_y = 0.0
     last_good_x = 0.0
