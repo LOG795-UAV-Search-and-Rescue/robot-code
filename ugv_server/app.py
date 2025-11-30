@@ -559,7 +559,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             try:
                 _, xs, ys = msg.split()
                 x = float(xs)
-                y = float(-ys)
+                y = -float(ys)
                 print(f"[GOTO] Moving rover to ({x}, {y}) from UI click")
                 map_ctrl.go_to(x, y)
             except Exception as e:
@@ -594,7 +594,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
 
         try:
             x = float(xd)
-            y = float(-yd)
+            y = -float(yd)
         except ValueError:
             # print(f"[WARN] Invalid position values: {xd}, {yd}")
             x, y = 0, 0
