@@ -590,7 +590,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             # print(f"[WARN] Malformed UDP packet: {msg}")
             return
 
-        ts, xd, yd, q = parts[:4]
+        ts, yd, xd, q = parts[:4]
 
         try:
             x = float(xd)
