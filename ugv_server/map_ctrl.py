@@ -187,7 +187,7 @@ class MapController():
         angle_error = (angle_error + math.pi) % (2 * math.pi) - math.pi
 
         # Stop if close enough to target yaw
-        if abs(angle_error) < f['map_config']['angular_tolerance']:
+        if abs(angle_error) < 0.001:
             self.turn_to_target = False
             self.base_ctrl.base_ros_speed_ctrl(0.0, 0.0)
             return

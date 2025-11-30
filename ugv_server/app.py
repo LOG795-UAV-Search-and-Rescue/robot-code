@@ -269,7 +269,6 @@ def stop():
     map_ctrl.stop()
     return jsonify({'success': True, 'message': 'Stopping movement'})
 
-# Go to position
 @app.route('/turn_to', methods=['POST'])
 def turn_to():
     angle = float(request.json.get('angle', 0))
