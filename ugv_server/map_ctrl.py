@@ -76,6 +76,7 @@ class MapController():
         self.target_x = 0.0
         self.target_y = 0.0
         self.go_to_target = False
+        self.turn_to_target = False
         # Create LidarPoseEstimator with configuration values
 
     def update(self):
@@ -97,6 +98,9 @@ class MapController():
 
         if self.go_to_target:
             self.__move_to_target()
+
+        if self.turn_to_target:
+            self.__turn_to_target()
 
         print(f"Updated Position: x={self.pos_x:.3f} m, y={self.pos_y:.3f} m, theta={math.degrees(self.yaw):.2f} deg.")
         return self.pos_x, self.pos_y, self.yaw
@@ -125,6 +129,12 @@ class MapController():
         self.target_x = target_x
         self.target_y = target_y
         self.go_to_target = True
+
+    def make_a_turn(self, angle_rad):
+        self.target_yaw = self.yaw + angle_rad
+        # Normalize target_yaw to [-pi, pi]
+        self.target_yaw = (self.target_yaw + math.pi) % (2 * math.pi) - math.pi
+        self.turn_to_target = True
 
     def __move_to_target(self):
         # Simple proportional controller to go to target
@@ -171,7 +181,31 @@ class MapController():
         # Send commands to base controller
         self.base_ctrl.base_ros_speed_ctrl(linear_velocity, angular_velocity)
 
-        
+    def __turn_to_target(self):
+        angle_error = self.target_yaw - self.yaw
+        # Normalize angle error to [-pi, pi]
+        angle_error = (angle_error + math.pi) % (2 * math.pi) - math.pi
+
+        # Stop if close enough to target yaw
+        if abs(angle_error) < f['map_config']['angular_tolerance']:
+            self.turn_to_target = False
+            self.base_ctrl.base_ros_speed_ctrl(0.0, 0.0)
+            return
+
+        # Control gain
+        kp_angular = f['map_config']['kp_angular']
+
+        # Maximum angular velocity
+        max_angular_velocity = f['map_config']['max_angular_speed']  # rad/s
+
+        # Calculate control command
+        angular_velocity = kp_angular * angle_error
+
+        # Limit angular velocity
+        angular_velocity = max(-max_angular_velocity, min(max_angular_velocity, angular_velocity))
+
+        # Send command to base controller
+        self.base_ctrl.base_ros_speed_ctrl(0.0, angular_velocity)
 
     def create_pose_graph(self):
         """

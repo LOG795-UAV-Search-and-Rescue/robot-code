@@ -8,6 +8,13 @@ import atexit
 import socket
 import base64
 import hashlib
+import math
+
+def deg_to_rad(deg):
+    return deg * (math.pi / 180.0)
+
+def rad_to_deg(rad):
+    return rad * (180.0 / math.pi)
 
 def set_default_sink(device_name):
     try:
@@ -262,6 +269,13 @@ def stop():
     map_ctrl.stop()
     return jsonify({'success': True, 'message': 'Stopping movement'})
 
+# Go to position
+@app.route('/turn_to', methods=['POST'])
+def turn_to():
+    angle = float(request.json.get('angle', 0))
+    rad = deg_to_rad(angle)
+    map_ctrl.make_a_turn(rad)
+    return jsonify({'success': True, 'message': f'Turning {angle} degrees'})
 
 # Video WebRTC
 
