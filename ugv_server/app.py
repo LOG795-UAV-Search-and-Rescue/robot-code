@@ -406,7 +406,7 @@ def rover_pose_broadcast_loop():
     while True:
         try:
             x, y, o = map_ctrl.get_position()   # rover position + orientation
-            packet = f"ROVER,{y:.3f},{x:.3f},{o:.3f}"
+            packet = f"ROVER,{x:.3f},{y:.3f},{o:.3f}"
             # Example: "ROVER,-0.005,0.000,-3.071"
             sock.sendto(packet.encode("utf-8"), (udp_ip, udp_port))
         except Exception as e:
@@ -590,7 +590,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             # print(f"[WARN] Malformed UDP packet: {msg}")
             return
 
-        ts, yd, xd, q = parts[:4]
+        ts, xd, yd, q = parts[:4]
 
         try:
             x = float(xd)
