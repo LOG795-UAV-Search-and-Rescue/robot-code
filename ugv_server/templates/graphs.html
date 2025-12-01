@@ -35,7 +35,13 @@
 <body>
     <h2>UGV Real-Time Graphs</h2>
     <div>
-        <button onclick="downloadCsv()">Download Data</button>
+        <button style="padding-right: 3px;" onclick="downloadCsv()">Download Data</button>
+        <input type="text" id="go_to_x" placeholder="X coordinate">
+        <span>, </span>
+        <input type="text" id="go_to_y" placeholder="Y coordinate">
+        <button style="padding-right: 3px;" onclick="sendGoTo()">Go To</button>
+        <input type="text" id="turn" placeholder="Turn Angle (deg)">
+        <button onclick="sendTurn()">Turn</button>
     </div>
 
     <div class="container">
@@ -86,8 +92,31 @@
             });
         }
 
+        function sendGoTo() {
+            const x = parseFloat(document.getElementById('go_to_x').value);
+            const y = parseFloat(document.getElementById('go_to_y').value);
+            fetch('/go_to', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ x: x, y: y }),
+            });
+        }
 
-        const pose_ctx = document.getElementById('pose').getContext('2d');
+        function sendTurn() {
+            const angleDeg = parseFloat(document.getElementById('turn').value);
+            fetch('/turn_to', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ angle: angleDeg }),
+            });
+        }
+
+        const pose_canvas = document.getElementById('pose');
+        const pose_ctx = pose_canvas.getContext('2d');
         const pose_h = document.getElementById('pose-h');
         const odometry_ctx = document.getElementById('odometry').getContext('2d');
         const angle_ctx = document.getElementById('angle').getContext('2d');
@@ -112,6 +141,15 @@
                         borderColor: 'red',
                         pointRadius: 0,
                         borderWidth: 2,
+                        fill: false,
+                        data: []
+                    },
+                    {
+                        label: 'Go to Points',
+                        borderColor: 'green',
+                        pointBackgroundColor: 'green',
+                        pointRadius: 1,
+                        borderWidth: 1,
                         fill: false,
                         data: []
                     }
@@ -227,6 +265,7 @@
         function updateCharts(data) {
             pose_chart.data.datasets[0].data = [{x:data.x, y:data.y}];
             pose_chart.data.datasets[1].data = [{x:data.x, y:data.y}, {x:data.x + (0.5 * Math.cos(data.yaw)), y:data.y + (0.5 * Math.sin(data.yaw))}];
+            pose_chart.data.datasets[2].data = [{x:data.x, y:data.y}, ...data.go_to_points];
             pose_chart.update();
             pose_h.innerText = `Position (x: ${data.x.toFixed(2)} m, y: ${data.y.toFixed(2)} m, yaw: ${radToDeg(data.yaw).toFixed(2)}°)`;
 
@@ -252,9 +291,31 @@
             setTimeout(tick, 200); // Fetch new data every second
         }
         
-        tick();
+        canvas.onclick = (event) => {
+            // Get the relative position of the click on the canvas
+            const canvasPosition = Chart.helpers.getRelativePosition(event, pose_chart);
 
-        
+            // Convert pixel coordinates to data values
+            // Substitute 'x' and 'y' with your actual scale IDs if different
+            const dataX = myChart.scales.x.getValueForPixel(canvasPosition.x);
+            const dataY = myChart.scales.y.getValueForPixel(canvasPosition.y);
+
+            // Add the new point to the dataset
+            pose_chart.data.datasets[2].data = [{ x: dataX, y: dataY }];
+
+            fetch('/go_to', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ x: dataX, y: dataY }),
+            });
+
+            // Update the chart to display the new point
+            pose_chart.update();
+        };
+
+        tick();
     </script>
 </body>
 </html>
