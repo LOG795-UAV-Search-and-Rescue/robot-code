@@ -50,7 +50,7 @@
         </div>
 
         <div class="accel_container">
-            <h3 style="text-align: center;">Angle Velocity</h3>
+            <h3 style="text-align: center;">Acceleration</h3>
             <canvas id="accel"></canvas>    
         </div>
     </div>
@@ -69,14 +69,14 @@
                         label: 'Position',
                         borderColor: 'blue',
                         borderWidth: 2,
-                        fill: true,
+                        fill: false,
                         data: []
                     },
                     {
                         label: 'Direction',
                         borderColor: 'red',
                         borderWidth: 1,
-                        fill: true,
+                        fill: false,
                         data: []
                     }
                 ]
@@ -95,25 +95,23 @@
             data: {
                 datasets: [
                     {
-                        label: 'Position',
+                        label: 'Right Wheel',
                         borderColor: 'blue',
-                        borderWidth: 2,
-                        fill: true,
+                        fill: false,
                         data: []
                     },
                     {
-                        label: 'Direction',
+                        label: 'Left Wheel',
                         borderColor: 'red',
-                        borderWidth: 1,
-                        fill: true,
+                        fill: false,
                         data: []
                     }
                 ]
             },
             options: {
                 scales: {
-                    x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
-                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
+                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (min)' } },
+                    y: { title: { display: true, text: 'Distance (m)' } }
                 }
             }
         });
@@ -124,25 +122,17 @@
             data: {
                 datasets: [
                     {
-                        label: 'Position',
+                        label: 'Angle Velocity (yaw)',
                         borderColor: 'blue',
-                        borderWidth: 2,
                         fill: true,
                         data: []
                     },
-                    {
-                        label: 'Direction',
-                        borderColor: 'red',
-                        borderWidth: 1,
-                        fill: true,
-                        data: []
-                    }
                 ]
             },
             options: {
                 scales: {
-                    x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
-                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
+                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (min)' } },
+                    y: { title: { display: true, text: 'Velocity (rad/s)' } }
                 }
             }
         });
@@ -153,15 +143,21 @@
             data: {
                 datasets: [
                     {
-                        label: 'Position',
+                        label: 'ax',
                         borderColor: 'blue',
-                        borderWidth: 2,
                         fill: true,
                         data: []
                     },
                     {
-                        label: 'Direction',
+                        label: 'ay',
                         borderColor: 'red',
+                        borderWidth: 1,
+                        fill: true,
+                        data: []
+                    },
+                    {
+                        label: 'az',
+                        borderColor: 'green',
                         borderWidth: 1,
                         fill: true,
                         data: []
@@ -170,8 +166,8 @@
             },
             options: {
                 scales: {
-                    x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
-                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
+                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (min)' } },
+                    y: { title: { display: true, text: 'Acceleration (m/s^2)' } }
                 }
             }
         });
@@ -185,6 +181,19 @@
             pose_chart.data.datasets[0].data = [{x:data.x, y:data.y}];
             pose_chart.data.datasets[1].data = [{x:data.x, y:data.y}, {x:data.x + (0.5 * Math.cos(data.yaw)), y:data.y + (0.5 * Math.sin(data.yaw))}];
             pose_chart.update();
+
+            const kpi_data = data.kpi;
+            odom_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.odr}));
+            odom_chart.data.datasets[1].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.odl}));
+            odom_chart.update();
+
+            angle_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.gz}));
+            angle_chart.update();
+
+            accel_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.ax}));
+            accel_chart.data.datasets[1].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.ay}));
+            accel_chart.data.datasets[2].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.az}));
+            accel_chart.update();
         }
 
         async function tick() {
