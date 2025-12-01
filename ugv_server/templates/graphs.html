@@ -60,12 +60,16 @@
         </div>
     </div>
     <script>
+        function radToDeg(rad) {
+            return rad * (180 / Math.PI);
+        }
+
         function downloadCsv() {
             fetchData().then(data => {
-                let csvData = "Time,x,y,yaw,'Left Wheel','Right Wheel',gx,gy,gz,mx,my,mz,ax,ay,az\n";
+                let csvData = "Time (s),x (m),y (m),yaw (deg),Left Wheel (m),Right Wheel (m),gx (deg/s),gy (deg/s),gz (deg/s),mx,my,mz,ax (m/s^2),ay (m/s^2),az (m/s^2)\n";
 
                 data.kpi.forEach(d => {
-                    csvData += `${d.t},${d.x},${d.y},${d.yaw},${d.odl},${d.odr},${d.gx},${d.gy},${d.gz},${d.mx},${d.my},${d.mz},${d.ax},${d.ay},${d.az}\n`;
+                    csvData += `${d.t},${d.x},${d.y},${radToDeg(d.yaw)},${d.odl},${d.odr},${d.gx},${d.gy},${d.gz},${d.mx},${d.my},${d.mz},${d.ax},${d.ay},${d.az}\n`;
                 });
 
                 const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
