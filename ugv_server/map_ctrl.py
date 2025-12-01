@@ -77,6 +77,7 @@ class MapController():
         self.target_y = 0.0
         self.go_to_target = False
         self.turn_to_target = False
+        self.last_time = time.time()
         # Create LidarPoseEstimator with configuration values
 
     def update(self):
@@ -84,7 +85,19 @@ class MapController():
         if data is None or 'odl' not in data or 'odr' not in data:
             return self.pos_x, self.pos_y, self.yaw
         
-        print(data)
+        # print(data)
+
+        # If change exceeds max speed, ignore update
+        time = time.time()
+        dt = time - self.last_time
+        self.last_time = time
+        max_speed = f['map_config'].get('max_speed_m_s', 2.5)  # m/s
+        max_distance = max_speed * dt
+        odl_delta = data['odl'] - self.pos_estimator.last_odl
+        odr_delta = data['odr'] - self.pos_estimator.last_odr
+        if abs(odr_delta) > max_distance or abs(odl_delta) > max_distance:
+            print(f"[WARN] Ignoring odometry update due to excessive speed: (L:{odl_delta/dt:.2f} m/s, R:{odr_delta/dt:.2f} m/s)")
+            return self.pos_x, self.pos_y, self.yaw
         
         delta_x, delta_y, delta_yaw = self.pos_estimator.process_data(data['odl'], data['odr'])
 
