@@ -58,9 +58,7 @@ class MapController():
 
         self.lidar_estimator = LidarPoseEstimator(map_resolution=f['map_config'].get('map_resolution_m', 0.02), max_map_points=f['map_config'].get('map_max_points', 200000))
 
-
         # get first position from base controller
-        
         data = base_ctrl.feedback_data()
         while data is None or 'odl' not in data or 'odr' not in data:
             time.sleep(0.05)
@@ -78,7 +76,7 @@ class MapController():
         self.go_to_target = False
         self.turn_to_target = False
         self.last_time = time.time()
-        # Create LidarPoseEstimator with configuration values
+        self.kpi = []
 
     def update(self):
         data = self.base_ctrl.feedback_data()
@@ -91,6 +89,9 @@ class MapController():
         time = time.time()
         dt = time - self.last_time
         self.last_time = time
+
+        self.kpi.append({'t': time, 'odl': data['odl'], 'odr': data['odr'], 'gx': data.get('gx', 0.0), 'gy': data.get('gy', 0.0), 'gz': data.get('gz', 0.0), 'mx': data.get('mx', 0.0), 'my': data.get('my', 0.0), 'mz': data.get('mz', 0.0), 'ax': data.get('ax', 0.0), 'ay': data.get('ay', 0.0), 'az': data.get('az', 0.0)})
+
         max_speed = f['map_config'].get('max_speed_m_s', 2.5)  # m/s
         max_distance = max_speed * dt
         odl_delta = data['odl'] - self.pos_estimator.last_odl
@@ -219,6 +220,70 @@ class MapController():
 
         # Send command to base controller
         self.base_ctrl.base_ros_speed_ctrl(0.0, angular_velocity)
+
+    def create_kpi_graph(self):
+        """
+        Creates a simple Matplotlib graph representing the KPI data.
+        """
+        times = [entry['t'] - self.kpi[0]['t'] for entry in self.kpi]
+        odl_values = [entry['odl'] for entry in self.kpi]
+        odr_values = [entry['odr'] for entry in self.kpi]
+        rotation_values = [entry['gz'] for entry in self.kpi]
+        acce_x_values = [entry['ax'] for entry in self.kpi]
+        acce_y_values = [entry['ay'] for entry in self.kpi]
+        acce_z_values = [entry['az'] for entry in self.kpi]
+
+        fig, axs = plt.subplots(2, 2)
+        axs[0, 0].plot(times, odl_values, label='Left Odometry (odl)', color='blue')
+        axs[0, 0].plot(times, odr_values, label='Right Odometry (odr)', color='orange')
+        axs[0, 0].set_title('KPI Odometry Data Over Time')
+        axs[0, 0].set_xlabel('Time (s)')
+        axs[0, 0].set_ylabel('Odometry Readings (m)')
+        axs[0, 0].legend()
+        axs[0, 0].grid(True)
+
+        axs[0, 1].plot(times, rotation_values, label='Gyro Z (gz)', color='green')
+        axs[0, 1].set_title('KPI Gyro Z Data Over Time')
+        axs[0, 1].set_xlabel('Time (s)')
+        axs[0, 1].set_ylabel('Gyro Z (rad/s)')
+        axs[0, 1].legend()
+        axs[0, 1].grid(True)
+
+        axs[1, 0].plot(times, acce_x_values, label='Accel X (ax)', color='red')
+        axs[1, 0].plot(times, acce_y_values, label='Accel Y (ay)', color='purple')
+        axs[1, 0].plot(times, acce_z_values, label='Accel Z (az)', color='brown')
+        axs[1, 0].set_title('KPI Accelerometer Data Over Time')
+        axs[1, 0].set_xlabel('Time (s)')
+        axs[1, 0].set_ylabel('Acceleration (m/s²)')
+        axs[1, 0].legend()
+        axs[1, 0].grid(True)
+
+        # estimated pose plot
+
+        # Plot robot position
+        axs[1, 1].set_xlim(-10, 10)
+        axs[1, 1].set_ylim(-10, 10)
+        axs[1, 1].set_title('Robot Pose')
+        axs[1, 1].set_xlabel('X Position (m)')
+        axs[1, 1].set_ylabel('Y Position (m)')
+
+        axs[1, 1].plot(self.pos_x, self.pos_y, 'ro')  # Robot position
+        # Indicate orientation with an arrow
+        arrow_length = 0.5
+        axs[1, 1].arrow(self.pos_x, self.pos_y,
+                 arrow_length * math.cos(self.yaw),
+                 arrow_length * math.sin(self.yaw),
+                 head_width=0.2, head_length=0.2, fc='blue', ec='blue')
+
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format='jpeg')
+        plt.close(fig)
+        buffer.seek(0)
+        img = buffer.read()
+        buffer.close()
+
+        return img
+
 
     def create_pose_graph(self):
         """

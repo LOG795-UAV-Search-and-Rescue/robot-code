@@ -276,6 +276,16 @@ def turn_to():
     map_ctrl.make_a_turn(rad)
     return jsonify({'success': True, 'message': f'Turning {angle} degrees'})
 
+@app.route('/get_kpi', methods=['GET'])
+def get_kpi():
+    kpi_data = map_ctrl.kpi
+    x, y, yaw = map_ctrl.get_position()
+    return jsonify({'x': x, 'y': y, 'yaw': yaw, 'kpi': kpi_data})
+
+@app.route('/graphs', methods=['GET'])
+def graphs():
+    return render_template('graphs.html')
+
 # Video WebRTC
 
 # Function to manage connections

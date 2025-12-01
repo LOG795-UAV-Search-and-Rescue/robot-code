@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="pose"></canvas>
+    <canvas id="odometry"></canvas>
+    <canvas id="angle"></canvas>
+    <canvas id="accel"></canvas>
+    <script>
+        const pose_ctx = document.getElementById('pose').getContext('2d');
+        const odometry_ctx = document.getElementById('odometry').getContext('2d');
+        const angle_ctx = document.getElementById('angle').getContext('2d');
+        const accel_ctx = document.getElementById('accel').getContext('2d');
+
+        function fetchData() {
+            return fetch('/get_kpi')
+                .then(response => response.json());
+        }
+
+        function updateCharts(data) {
+            // Update your charts here using the kpi_data
+            const pose_chart = new Chart(pose_ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Position',
+                            borderColor: 'blue',
+                            borderWidth: 2,
+                            fill: false,
+                            data: [{x:data.x, y:data.y}]
+                        },
+                        {
+                            label: 'Direction',
+                            borderColor: 'red',
+                            borderWidth: 1,
+                            fill: false,
+                            data: [{x:data.x, y:data.y}, {x:data.pos_x + Math.cos(data.yaw), y:data.pos_y + Math.sin(data.yaw)}]
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: { type: 'linear', position: 'bottom', title: { display: true, text: 'x (m)' } },
+                        y: { title: { display: true, text: 'y (m)' } }
+                    }
+                }
+            });
+        }
+
+        async function tick() {
+            const data = await fetchData();
+            console.log(data);
+            updateCharts(data);
+            // Update charts with kpi_data
+            setTimeout(tick, 200); // Fetch new data every second
+        }
+        
+        tick();
+
+        
+    </script>
+</body>
+</html>
