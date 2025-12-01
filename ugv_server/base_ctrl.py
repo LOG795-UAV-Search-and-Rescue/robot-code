@@ -180,6 +180,10 @@ class BaseController:
 		data = {"T":1,"L":input_left,"R":input_right}
 		self.send_command(data)
 
+	def base_power_ctrl(self, input_left, input_right):
+		data = {"T":11,"L":input_left,"R":input_right}
+		self.send_command(data)
+
 
 	def base_ros_speed_ctrl(self, x, z):
 		data = {"T":13,"X":x,"Z":z}

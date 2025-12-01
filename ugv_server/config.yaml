@@ -114,7 +114,7 @@ upd_control:
   quality_min: 30
 map_config:
   max_speed_m_s: 2.5
-  wheelbase_m: 0.19601
+  wheelbase_m: 0.189
   alpha: 1
   # Map and LIDAR pose estimation configuration
   map_resolution_m: 0.02

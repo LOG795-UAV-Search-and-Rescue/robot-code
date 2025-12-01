@@ -168,6 +168,8 @@
                 ]
             },
             options: {
+                maintainAspectRatio: true,
+                aspectRatio: 1,
                 scales: {
                     x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
                     y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
@@ -279,7 +281,7 @@
             pose_chart.data.datasets[1].data = [{x:data.x, y:data.y}, {x:data.x + (0.5 * Math.cos(data.yaw)), y:data.y + (0.5 * Math.sin(data.yaw))}];
             if (pose_chart.data.datasets[2].data.length > 1)
                 pose_chart.data.datasets[2].data = [{x:data.x, y:data.y}, pose_chart.data.datasets[2].data[0]];
-            
+
             pose_chart.update();
             pose_h.innerText = `Position (x: ${data.x.toFixed(2)} m, y: ${data.y.toFixed(2)} m, yaw: ${radToDeg(data.yaw).toFixed(2)}°)`;
 
