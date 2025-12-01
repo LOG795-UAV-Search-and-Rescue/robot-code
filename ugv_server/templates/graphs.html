@@ -33,6 +33,11 @@
     </style>
 </head>
 <body>
+    <h2>UGV Real-Time Graphs</h2>
+    <div>
+        <button onclick="downloadCsv()">Download Data</button>
+    </div>
+
     <div class="container">
         <div class="pose_container">
             <h3 style="text-align: center;">Position</h3>
@@ -55,6 +60,29 @@
         </div>
     </div>
     <script>
+        function downloadCsv() {
+            fetchData().then(data => {
+                let csvData = "Time,x,y,yaw,'Left Wheel','Right Wheel',gx,gy,gz,mx,my,mz,ax,ay,az\n";
+
+                data.kpi.forEach(d => {
+                    csvData += `${d.t},${d.x},${d.y},${d.yaw},${d.odl},${d.odr},${d.gx},${d.gy},${d.gz},${d.mx},${d.my},${d.mz},${d.ax},${d.ay},${d.az}\n`;
+                });
+
+                const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+                const link = document.createElement("a");
+                const timestamp = new Date().toISOString().replace(/[:.-]/g, "_");
+
+                link.download = `data-${timestamp}.csv`;
+                link.href = URL.createObjectURL(blob);
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            });
+        }
+
+
         const pose_ctx = document.getElementById('pose').getContext('2d');
         const odometry_ctx = document.getElementById('odometry').getContext('2d');
         const angle_ctx = document.getElementById('angle').getContext('2d');
@@ -182,8 +210,12 @@
             }
         });
 
-        function fetchData() {
-            return fetch('/get_kpi?n=300')
+        function fetchData(n = 0) {
+            if (n)
+                return fetch('/get_kpi?n=' + (n))
+                    .then(response => response.json());
+
+            return fetch('/get_kpi')
                 .then(response => response.json());
         }
 
@@ -207,7 +239,7 @@
         }
 
         async function tick() {
-            const data = await fetchData();
+            const data = await fetchData(300);
             console.log(data);
             updateCharts(data);
             // Update charts with kpi_data
