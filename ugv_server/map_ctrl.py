@@ -90,7 +90,8 @@ class MapController():
         dt = t - self.last_time
         self.last_time = t
 
-        self.kpi.append({'t': t, 'odl': data['odl'], 'odr': data['odr'], 'gx': data.get('gx', 0.0), 'gy': data.get('gy', 0.0), 'gz': data.get('gz', 0.0), 'mx': data.get('mx', 0.0), 'my': data.get('my', 0.0), 'mz': data.get('mz', 0.0), 'ax': data.get('ax', 0.0), 'ay': data.get('ay', 0.0), 'az': data.get('az', 0.0)})
+        if dt >= 0.2:
+            self.kpi.append({'t': t, 'odl': data['odl'], 'odr': data['odr'], 'gx': data.get('gx', 0.0), 'gy': data.get('gy', 0.0), 'gz': data.get('gz', 0.0), 'mx': data.get('mx', 0.0), 'my': data.get('my', 0.0), 'mz': data.get('mz', 0.0), 'ax': data.get('ax', 0.0), 'ay': data.get('ay', 0.0), 'az': data.get('az', 0.0)})
 
         max_speed = f['map_config'].get('max_speed_m_s', 2.5)  # m/s
         max_distance = max_speed * dt
