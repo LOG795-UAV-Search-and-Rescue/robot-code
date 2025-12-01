@@ -75,7 +75,8 @@ class MapController():
         self.target_y = 0.0
         self.go_to_target = False
         self.turn_to_target = False
-        self.last_time = time.time()
+        self.start_time = time.time()
+        self.last_time = self.start_time
         self.last_kpi_time = self.last_time
         self.kpi = []
 
@@ -91,12 +92,11 @@ class MapController():
         dt = t - self.last_time
         self.last_time = t
 
-
         dt_kpi = t - self.last_kpi_time
         if dt_kpi >= 0.2:
             self.last_kpi_time = t
-            self.kpi.append({'t': t, 'odl': data['odl'], 'odr': data['odr'], 'gx': data.get('gx', 0.0), 'gy': data.get('gy', 0.0), 'gz': data.get('gz', 0.0), 'mx': data.get('mx', 0.0), 'my': data.get('my', 0.0), 'mz': data.get('mz', 0.0), 'ax': data.get('ax', 0.0), 'ay': data.get('ay', 0.0), 'az': data.get('az', 0.0)})
-
+            self.kpi.append({'t': t - self.start_time, 'odl': data['odl'] - self.odometry_start[0], 'odr': data['odr'] - self.odometry_start[1], 'gx': data.get('gx', 0.0), 'gy': data.get('gy', 0.0), 'gz': data.get('gz', 0.0), 'mx': data.get('mx', 0.0), 'my': data.get('my', 0.0), 'mz': data.get('mz', 0.0), 'ax': data.get('ax', 0.0), 'ay': data.get('ay', 0.0), 'az': data.get('az', 0.0)})
+        
         max_speed = f['map_config'].get('max_speed_m_s', 2.5)  # m/s
         max_distance = max_speed * dt
         odl_delta = data['odl'] - self.pos_estimator.prev_odl
@@ -105,6 +105,8 @@ class MapController():
             print(f"[WARN] Ignoring odometry update due to excessive speed: (L:{odl_delta/dt:.2f} m/s, R:{odr_delta/dt:.2f} m/s)")
             return self.pos_x, self.pos_y, self.yaw
         
+
+
         delta_x, delta_y, delta_yaw = self.pos_estimator.process_data(data['odl'], data['odr'])
 
         # delta_x, delta_y, delta_yaw = self.lidar_estimator.correct_pos_delta(self.get_lidar_points_m(), odometry_pose_delta=odometry_pose_delta)

@@ -278,7 +278,8 @@ def turn_to():
 
 @app.route('/get_kpi', methods=['GET'])
 def get_kpi():
-    kpi_data = map_ctrl.kpi
+    nb_points = int(request.args.get('n', 100))
+    kpi_data = map_ctrl.kpi[-nb_points:] if len(map_ctrl.kpi) >= nb_points else map_ctrl.kpi
     x, y, yaw = map_ctrl.get_position()
     return jsonify({'x': x, 'y': y, 'yaw': yaw, 'kpi': kpi_data})
 

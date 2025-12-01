@@ -110,7 +110,7 @@
             },
             options: {
                 scales: {
-                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (min)' } },
+                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
                     y: { title: { display: true, text: 'Distance (m)' } }
                 }
             }
@@ -131,7 +131,7 @@
             },
             options: {
                 scales: {
-                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (min)' } },
+                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
                     y: { title: { display: true, text: 'Velocity (rad/s)' } }
                 }
             }
@@ -166,14 +166,14 @@
             },
             options: {
                 scales: {
-                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (min)' } },
+                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
                     y: { title: { display: true, text: 'Acceleration (m/s^2)' } }
                 }
             }
         });
 
         function fetchData() {
-            return fetch('/get_kpi')
+            return fetch('/get_kpi?n=300')
                 .then(response => response.json());
         }
 
@@ -183,16 +183,16 @@
             pose_chart.update();
 
             const kpi_data = data.kpi;
-            odom_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.odr}));
-            odom_chart.data.datasets[1].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.odl}));
+            odom_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t), y: d.odr}));
+            odom_chart.data.datasets[1].data = kpi_data.map(d => ({x: (d.t), y: d.odl}));
             odom_chart.update();
 
-            angle_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.gz}));
+            angle_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t), y: d.gz}));
             angle_chart.update();
 
-            accel_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.ax}));
-            accel_chart.data.datasets[1].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.ay}));
-            accel_chart.data.datasets[2].data = kpi_data.map(d => ({x: (d.t - kpi_data[0].t)/60, y: d.az}));
+            accel_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t), y: d.ax}));
+            accel_chart.data.datasets[1].data = kpi_data.map(d => ({x: (d.t), y: d.ay}));
+            accel_chart.data.datasets[2].data = kpi_data.map(d => ({x: (d.t), y: d.az}));
             accel_chart.update();
         }
 
