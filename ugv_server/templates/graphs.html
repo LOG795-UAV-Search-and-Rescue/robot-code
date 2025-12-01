@@ -15,40 +15,44 @@
         const angle_ctx = document.getElementById('angle').getContext('2d');
         const accel_ctx = document.getElementById('accel').getContext('2d');
 
+        // Update your charts here using the kpi_data
+        const pose_chart = new Chart(pose_ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Position',
+                        borderColor: 'blue',
+                        borderWidth: 2,
+                        fill: true,
+                        data: []
+                    },
+                    {
+                        label: 'Direction',
+                        borderColor: 'red',
+                        borderWidth: 1,
+                        fill: true,
+                        data: []
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
+                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
+                }
+            }
+        });
+
         function fetchData() {
             return fetch('/get_kpi')
                 .then(response => response.json());
         }
 
         function updateCharts(data) {
-            // Update your charts here using the kpi_data
-            const pose_chart = new Chart(pose_ctx, {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            label: 'Position',
-                            borderColor: 'blue',
-                            borderWidth: 2,
-                            fill: true,
-                            data: [{x:data.x, y:data.y}]
-                        },
-                        {
-                            label: 'Direction',
-                            borderColor: 'red',
-                            borderWidth: 1,
-                            fill: true,
-                            data: [{x:data.x, y:data.y}, {x:data.x + (0.5 * Math.cos(data.yaw)), y:data.y + (0.5 * Math.sin(data.yaw))}]
-                        }
-                    ]
-                },
-                options: {
-                    scales: {
-                        x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
-                        y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
-                    }
-                }
-            });
+            pose_chart.data.datasets[0].data = [{x:data.x, y:data.y}];
+            pose_chart.data.datasets[1].data = [{x:data.x, y:data.y}, {x:data.x + (0.5 * Math.cos(data.yaw)), y:data.y + (0.5 * Math.sin(data.yaw))}];
+            pose_chart.update();
         }
 
         async function tick() {
