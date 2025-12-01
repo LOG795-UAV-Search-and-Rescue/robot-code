@@ -89,6 +89,93 @@
             }
         });
 
+        // Update your charts here using the kpi_data
+        const odom_chart = new Chart(odometry_ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Position',
+                        borderColor: 'blue',
+                        borderWidth: 2,
+                        fill: true,
+                        data: []
+                    },
+                    {
+                        label: 'Direction',
+                        borderColor: 'red',
+                        borderWidth: 1,
+                        fill: true,
+                        data: []
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
+                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
+                }
+            }
+        });
+
+        // Update your charts here using the kpi_data
+        const angle_chart = new Chart(angle_ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Position',
+                        borderColor: 'blue',
+                        borderWidth: 2,
+                        fill: true,
+                        data: []
+                    },
+                    {
+                        label: 'Direction',
+                        borderColor: 'red',
+                        borderWidth: 1,
+                        fill: true,
+                        data: []
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
+                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
+                }
+            }
+        });
+
+        // Update your charts here using the kpi_data
+        const accel_chart = new Chart(accel_ctx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Position',
+                        borderColor: 'blue',
+                        borderWidth: 2,
+                        fill: true,
+                        data: []
+                    },
+                    {
+                        label: 'Direction',
+                        borderColor: 'red',
+                        borderWidth: 1,
+                        fill: true,
+                        data: []
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
+                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
+                }
+            }
+        });
+
         function fetchData() {
             return fetch('/get_kpi')
                 .then(response => response.json());
