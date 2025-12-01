@@ -33,15 +33,16 @@
     </style>
 </head>
 <body>
-    <h2>UGV Real-Time Graphs</h2>
+    <h1>UGV Real-Time Graphs</h1>
     <div>
         <button style="padding-right: 3px;" onclick="downloadCsv()">Download Data</button>
+        <button style="padding-right: 3px;" onclick="stopMoving()">Stop</button>
         <input type="text" id="go_to_x" placeholder="X coordinate">
         <span>, </span>
         <input type="text" id="go_to_y" placeholder="Y coordinate">
         <button style="padding-right: 3px;" onclick="sendGoTo()">Go To</button>
         <input type="text" id="turn" placeholder="Turn Angle (deg)">
-        <button onclick="sendTurn()">Turn</button>
+        <button style="padding-right: 3px;" onclick="sendTurn()">Turn</button>
     </div>
 
     <div class="container">
@@ -115,6 +116,17 @@
             });
         }
 
+        function stopMoving() {
+            fetch('/stop', {
+                method: 'POST',
+            });
+        }
+
+        var x = 0;
+        var y = 0;
+        var yaw = 0;
+        var go_to_x = 0;
+        var go_to_y = 0;
         const pose_canvas = document.getElementById('pose');
         const pose_ctx = pose_canvas.getContext('2d');
         const pose_h = document.getElementById('pose-h');
@@ -265,7 +277,7 @@
         function updateCharts(data) {
             pose_chart.data.datasets[0].data = [{x:data.x, y:data.y}];
             pose_chart.data.datasets[1].data = [{x:data.x, y:data.y}, {x:data.x + (0.5 * Math.cos(data.yaw)), y:data.y + (0.5 * Math.sin(data.yaw))}];
-            pose_chart.data.datasets[2].data = [{x:data.x, y:data.y}, ...pose_chart.data.datasets[2].data];
+            pose_chart.data.datasets[2].data = [{x:data.x, y:data.y}, pose_chart.data.datasets[2].data[0]];
             pose_chart.update();
             pose_h.innerText = `Position (x: ${data.x.toFixed(2)} m, y: ${data.y.toFixed(2)} m, yaw: ${radToDeg(data.yaw).toFixed(2)}°)`;
 
@@ -297,8 +309,8 @@
 
             // Convert pixel coordinates to data values
             // Substitute 'x' and 'y' with your actual scale IDs if different
-            const dataX = myChart.scales.x.getValueForPixel(canvasPosition.x);
-            const dataY = myChart.scales.y.getValueForPixel(canvasPosition.y);
+            const dataX = pose_chart.scales.x.getValueForPixel(canvasPosition.x);
+            const dataY = pose_chart.scales.y.getValueForPixel(canvasPosition.y);
 
             // Add the new point to the dataset
             pose_chart.data.datasets[2].data = [{ x: dataX, y: dataY }];
