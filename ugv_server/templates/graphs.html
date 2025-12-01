@@ -5,10 +5,26 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <canvas style="width: 100px; height: 100px;" id="pose"></canvas>
-    <canvas id="odometry"></canvas>
-    <canvas id="angle"></canvas>
-    <canvas id="accel"></canvas>
+    <div style="width: 100px; height: 100px;">
+        <h3 style="text-align: center;">Position</h3>
+        <canvas id="pose"></canvas>
+    </div>
+
+    <div style="width: 100px; height: 100px;">
+        <h3 style="text-align: center;">Odometry (distance travelled)</h3>
+        <canvas id="odometry"></canvas>
+    </div>
+
+    <div style="width: 100px; height: 100px;">
+        <h3 style="text-align: center;">Angle Velocity</h3>
+        <canvas id="angle"></canvas>    
+    </div>
+
+    <div style="width: 100px; height: 100px;">
+        <h3 style="text-align: center;">Angle Velocity</h3>
+        <canvas id="accel"></canvas>    
+    </div>
+
     <script>
         const pose_ctx = document.getElementById('pose').getContext('2d');
         const odometry_ctx = document.getElementById('odometry').getContext('2d');
