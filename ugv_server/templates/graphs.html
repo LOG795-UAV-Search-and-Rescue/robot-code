@@ -64,7 +64,7 @@
     <div class="container">
         <div class="pose_container">
             <h3 id="pose-h" style="text-align: center;">Position</h3>
-            <canvas height="476" width="476" id="pose"></canvas>
+            <div style="display: flex; align-content: center; width: 476; height: 476;"><canvas id="pose"></canvas>
         </div>
 
         <div class="odom_container">
@@ -187,8 +187,8 @@
                 maintainAspectRatio: true,
                 aspectRatio: 1,
                 scales: {
-                    x: { type: 'linear', min: -5, max: 5, position: 'bottom', title: { display: true, text: 'x (m)' }, grid: { tickLength: 5 } },
-                    y: { min: -5, max: 5, title: { display: true, text: 'y (m)' }, grid: { tickLength: 5 }}
+                    x: { type: 'linear', min: -5, max: 5, position: 'bottom', title: { display: true, text: 'x (m)' }, ticks: { stepSize: 0.25 } },
+                    y: { min: -5, max: 5, title: { display: true, text: 'y (m)' }, ticks: { stepSize: 0.25 }}
                 }
             }
         });
