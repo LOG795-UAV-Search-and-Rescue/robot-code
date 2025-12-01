@@ -143,8 +143,6 @@
         var yaw = 0;
         var go_to_x = 0;
         var go_to_y = 0;
-        const maxWidth = 400;
-        const spacing = 1; // in meters
         const pose_canvas = document.getElementById('pose');
         const pose_ctx = pose_canvas.getContext('2d');
         const pose_h = document.getElementById('pose-h');
@@ -190,32 +188,8 @@
                 aspectRatio: 1,
                 scales: {
                     x: {
-                        type: 'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' },
-                        ticks: {
-                            count: (ctx) => {
-                                const {
-                                    scale: {
-                                        maxWidth
-                                    }
-                                } = ctx;
-
-                                return maxWidth / spacing;
-                            }
-                        }
-                    },
-                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' },
-                        ticks: {
-                            count: (ctx) => {
-                                const {
-                                    scale: {
-                                        maxWidth
-                                    }
-                                } = ctx;
-
-                                return maxWidth / spacing;
-                            }
-                        }
-                    }
+                        type: 'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' }},
+                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' }}
                 }
             }
         });
