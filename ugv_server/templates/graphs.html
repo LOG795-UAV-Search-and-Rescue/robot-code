@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Dynamic Graph</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -8,15 +9,18 @@
             font-family: Arial, sans-serif;
             height: 100vh;
         }
+
         h2 {
             text-align: center;
         }
+
         canvas {
             border: 1px solid #ccc;
             margin: 20px auto;
             width: 100%;
             height: 100%;
         }
+
         .container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -25,13 +29,25 @@
             grid-row-gap: 0px;
             height: 100%;
         }
-        .pose_container { grid-area: 1 / 1 / 2 / 2; }
-        .odom_container { grid-area: 1 / 2 / 2 / 3; }
-        .angle_container { grid-area: 2 / 1 / 3 / 2; }
-        .accel_container { grid-area: 2 / 2 / 3 / 3; } 
 
+        .pose_container {
+            grid-area: 1 / 1 / 2 / 2;
+        }
+
+        .odom_container {
+            grid-area: 1 / 2 / 2 / 3;
+        }
+
+        .angle_container {
+            grid-area: 2 / 1 / 3 / 2;
+        }
+
+        .accel_container {
+            grid-area: 2 / 2 / 3 / 3;
+        }
     </style>
 </head>
+
 <body>
     <h1>UGV Real-Time Graphs</h1>
     <div>
@@ -58,12 +74,12 @@
 
         <div class="angle_container">
             <h3 style="text-align: center;">Angle Velocity</h3>
-            <canvas id="angle"></canvas>    
+            <canvas id="angle"></canvas>
         </div>
 
         <div class="accel_container">
             <h3 style="text-align: center;">Acceleration</h3>
-            <canvas id="accel"></canvas>    
+            <canvas id="accel"></canvas>
         </div>
     </div>
     <script>
@@ -127,6 +143,8 @@
         var yaw = 0;
         var go_to_x = 0;
         var go_to_y = 0;
+        const maxWidth = 400;
+        const spacing = 1; // in meters
         const pose_canvas = document.getElementById('pose');
         const pose_ctx = pose_canvas.getContext('2d');
         const pose_h = document.getElementById('pose-h');
@@ -171,8 +189,33 @@
                 maintainAspectRatio: true,
                 aspectRatio: 1,
                 scales: {
-                    x: { type:'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' } },
-                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' } }
+                    x: {
+                        type: 'linear', min: -10, max: 10, position: 'bottom', title: { display: true, text: 'x (m)' },
+                        ticks: {
+                            count: (ctx) => {
+                                const {
+                                    scale: {
+                                        maxWidth
+                                    }
+                                } = ctx;
+
+                                return maxWidth / spacing;
+                            }
+                        }
+                    },
+                    y: { min: -10, max: 10, title: { display: true, text: 'y (m)' },
+                        ticks: {
+                            count: (ctx) => {
+                                const {
+                                    scale: {
+                                        maxWidth
+                                    }
+                                } = ctx;
+
+                                return maxWidth / spacing;
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -200,7 +243,7 @@
             },
             options: {
                 scales: {
-                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
+                    x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
                     y: { title: { display: true, text: 'Distance (m)' } }
                 }
             }
@@ -222,7 +265,7 @@
             },
             options: {
                 scales: {
-                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
+                    x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
                     y: { title: { display: true, text: 'Velocity (rad/s)' } }
                 }
             }
@@ -261,7 +304,7 @@
             },
             options: {
                 scales: {
-                    x: { type:'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
+                    x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Time (s)' } },
                     y: { title: { display: true, text: 'Acceleration (m/s^2)' } }
                 }
             }
@@ -277,25 +320,25 @@
         }
 
         function updateCharts(data) {
-            pose_chart.data.datasets[0].data = [{x:data.x, y:data.y}];
-            pose_chart.data.datasets[1].data = [{x:data.x, y:data.y}, {x:data.x + (0.5 * Math.cos(data.yaw)), y:data.y + (0.5 * Math.sin(data.yaw))}];
+            pose_chart.data.datasets[0].data = [{ x: data.x, y: data.y }];
+            pose_chart.data.datasets[1].data = [{ x: data.x, y: data.y }, { x: data.x + (0.5 * Math.cos(data.yaw)), y: data.y + (0.5 * Math.sin(data.yaw)) }];
             if (pose_chart.data.datasets[2].data.length > 1)
-                pose_chart.data.datasets[2].data = [{x:data.x, y:data.y}, pose_chart.data.datasets[2].data[0]];
+                pose_chart.data.datasets[2].data = [{ x: data.x, y: data.y }, pose_chart.data.datasets[2].data[0]];
 
             pose_chart.update();
             pose_h.innerText = `Position (x: ${data.x.toFixed(2)} m, y: ${data.y.toFixed(2)} m, yaw: ${radToDeg(data.yaw).toFixed(2)}°)`;
 
             const kpi_data = data.kpi;
-            odom_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t), y: d.odr}));
-            odom_chart.data.datasets[1].data = kpi_data.map(d => ({x: (d.t), y: d.odl}));
+            odom_chart.data.datasets[0].data = kpi_data.map(d => ({ x: (d.t), y: d.odr }));
+            odom_chart.data.datasets[1].data = kpi_data.map(d => ({ x: (d.t), y: d.odl }));
             odom_chart.update();
 
-            angle_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t), y: d.gz}));
+            angle_chart.data.datasets[0].data = kpi_data.map(d => ({ x: (d.t), y: d.gz }));
             angle_chart.update();
 
-            accel_chart.data.datasets[0].data = kpi_data.map(d => ({x: (d.t), y: d.ax}));
-            accel_chart.data.datasets[1].data = kpi_data.map(d => ({x: (d.t), y: d.ay}));
-            accel_chart.data.datasets[2].data = kpi_data.map(d => ({x: (d.t), y: d.az}));
+            accel_chart.data.datasets[0].data = kpi_data.map(d => ({ x: (d.t), y: d.ax }));
+            accel_chart.data.datasets[1].data = kpi_data.map(d => ({ x: (d.t), y: d.ay }));
+            accel_chart.data.datasets[2].data = kpi_data.map(d => ({ x: (d.t), y: d.az }));
             accel_chart.update();
         }
 
@@ -306,7 +349,7 @@
             // Update charts with kpi_data
             setTimeout(tick, 200); // Fetch new data every second
         }
-        
+
         pose_canvas.onclick = (event) => {
             // Get the relative position of the click on the canvas
             const canvasPosition = Chart.helpers.getRelativePosition(event, pose_chart);
@@ -334,4 +377,5 @@
         tick();
     </script>
 </body>
+
 </html>
