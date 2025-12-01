@@ -38,7 +38,7 @@
                             borderColor: 'red',
                             borderWidth: 1,
                             fill: true,
-                            data: [{x:data.x, y:data.y}, {x:data.x + Math.cos(data.yaw), y:data.y + Math.sin(data.yaw)}]
+                            data: [{x:data.x, y:data.y}, {x:data.x + (0.5 * Math.cos(data.yaw)), y:data.y + (0.5 * Math.sin(data.yaw))}]
                         }
                     ]
                 },
