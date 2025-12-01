@@ -64,7 +64,7 @@
     <div class="container">
         <div class="pose_container">
             <h3 id="pose-h" style="text-align: center;">Position</h3>
-            <div style="width: 450px; height: 450px;"><canvas id="pose"></canvas></div>
+            <canvas id="pose"></canvas>
         </div>
 
         <div class="odom_container">
@@ -184,11 +184,35 @@
                 ]
             },
             options: {
-                maintainAspectRatio: true,
-                aspectRatio: 1,
                 scales: {
-                    x: { type: 'linear', min: -5, max: 5, position: 'bottom', title: { display: true, text: 'x (m)' }},
-                    y: { min: -5, max: 5, title: { display: true, text: 'y (m)' }}
+                    x: {
+                        type: 'linear', min: -5, max: 5, position: 'bottom', title: { display: true, text: 'x (m)' },
+                        ticks: {
+                            count: (ctx) => {
+                                const {
+                                    scale: {
+                                        maxHeight
+                                    }
+                                } = ctx;
+
+                                return maxHeight;
+                            }
+                        }
+                    },
+                    y: {
+                        min: -5, max: 5, title: { display: true, text: 'y (m)' },
+                        ticks: {
+                            count: (ctx) => {
+                                const {
+                                    scale: {
+                                        maxHeight
+                                    }
+                                } = ctx;
+
+                                return maxHeight;
+                            }
+                        }
+                    }
                 }
             }
         });
