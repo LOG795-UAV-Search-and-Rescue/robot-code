@@ -30,15 +30,15 @@
                             label: 'Position',
                             borderColor: 'blue',
                             borderWidth: 2,
-                            fill: false,
+                            fill: true,
                             data: [{x:data.x, y:data.y}]
                         },
                         {
                             label: 'Direction',
                             borderColor: 'red',
                             borderWidth: 1,
-                            fill: false,
-                            data: [{x:data.x, y:data.y}, {x:data.pos_x + Math.cos(data.yaw), y:data.pos_y + Math.sin(data.yaw)}]
+                            fill: true,
+                            data: [{x:data.x, y:data.y}, {x:data.x + Math.cos(data.yaw), y:data.y + Math.sin(data.yaw)}]
                         }
                     ]
                 },

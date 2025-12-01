@@ -117,7 +117,7 @@ class MapController():
         if self.turn_to_target:
             self.__turn_to_target()
 
-        print(f"Updated Position: x={self.pos_x:.3f} m, y={self.pos_y:.3f} m, theta={math.degrees(self.yaw):.2f} deg.")
+        # print(f"Updated Position: x={self.pos_x:.3f} m, y={self.pos_y:.3f} m, theta={math.degrees(self.yaw):.2f} deg.")
         return self.pos_x, self.pos_y, self.yaw
 
     def get_position(self):
