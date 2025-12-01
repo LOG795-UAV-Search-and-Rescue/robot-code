@@ -94,8 +94,8 @@ class MapController():
 
         max_speed = f['map_config'].get('max_speed_m_s', 2.5)  # m/s
         max_distance = max_speed * dt
-        odl_delta = data['odl'] - self.pos_estimator.last_odl
-        odr_delta = data['odr'] - self.pos_estimator.last_odr
+        odl_delta = data['odl'] - self.pos_estimator.prev_odl
+        odr_delta = data['odr'] - self.pos_estimator.prev_odr
         if abs(odr_delta) > max_distance or abs(odl_delta) > max_distance:
             print(f"[WARN] Ignoring odometry update due to excessive speed: (L:{odl_delta/dt:.2f} m/s, R:{odr_delta/dt:.2f} m/s)")
             return self.pos_x, self.pos_y, self.yaw
