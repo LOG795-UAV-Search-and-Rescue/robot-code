@@ -411,7 +411,7 @@ class MapController():
         pts = []
         for lidar_angle, lidar_distance in zip(self.base_ctrl.rl.lidar_angles_show, self.base_ctrl.rl.lidar_distances_show):
             lidar_y = float(lidar_distance * np.cos(lidar_angle))
-            lidar_x = float(lidar_distance * np.sin(lidar_angle))
+            lidar_x = -float(lidar_distance * np.sin(lidar_angle))
             pts.append({'x': lidar_x, 'y':lidar_y})
 
         return pts
