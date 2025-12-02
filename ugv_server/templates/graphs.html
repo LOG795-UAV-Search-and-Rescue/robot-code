@@ -332,21 +332,21 @@
             if (pose_chart.data.datasets[2].data.length > 0)
                 pose_chart.data.datasets[2].data = [pose_chart.data.datasets[2].data[0], { x: data.x, y: data.y }];
 
-            pose_chart.update();
+            pose_chart.update('none');
             pose_h.innerText = `Position (x: ${data.x.toFixed(2)} m, y: ${data.y.toFixed(2)} m, yaw: ${radToDeg(data.yaw).toFixed(2)}°)`;
 
             const kpi_data = data.kpi;
             odom_chart.data.datasets[0].data = kpi_data.map(d => ({ x: (d.t), y: d.odr }));
             odom_chart.data.datasets[1].data = kpi_data.map(d => ({ x: (d.t), y: d.odl }));
-            odom_chart.update();
+            odom_chart.update('none');
 
             angle_chart.data.datasets[0].data = kpi_data.map(d => ({ x: (d.t), y: d.gz }));
-            angle_chart.update();
+            angle_chart.update('none');
 
             accel_chart.data.datasets[0].data = kpi_data.map(d => ({ x: (d.t), y: d.ax }));
             accel_chart.data.datasets[1].data = kpi_data.map(d => ({ x: (d.t), y: d.ay }));
             accel_chart.data.datasets[2].data = kpi_data.map(d => ({ x: (d.t), y: d.az }));
-            accel_chart.update();
+            accel_chart.update('none');
 
             if(lidar){
                 lidar_chart.data.datasets[0].data = lidar.map(point => ({ x: point.x, y: point.y }));
