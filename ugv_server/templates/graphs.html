@@ -322,7 +322,6 @@
         function fetchLidar() {
             return fetch('/get_lidar')
                 .then(response => {
-                    console.log(response);
                     response.json()
                 });
         }
@@ -349,8 +348,10 @@
             accel_chart.data.datasets[2].data = kpi_data.map(d => ({ x: (d.t), y: d.az }));
             accel_chart.update();
 
-            lidar_chart.data.datasets[0].data = lidar.map(point => ({ x: point.x, y: point.y }));
-            lidar_chart.update();
+            if(lidar){
+                lidar_chart.data.datasets[0].data = lidar.map(point => ({ x: point.x, y: point.y }));
+                lidar_chart.update();
+            }
         }
 
         async function tick() {
