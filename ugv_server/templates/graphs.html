@@ -326,7 +326,7 @@
                 .then(response => response.json());
         }
 
-        function updateCharts(data, lidar) {
+        function updateCharts(data) {
             pose_chart.data.datasets[0].data = [{ x: data.x, y: data.y }];
             pose_chart.data.datasets[1].data = [{ x: data.x, y: data.y }, { x: data.x + (0.5 * Math.cos(data.yaw)), y: data.y + (0.5 * Math.sin(data.yaw)) }];
             if (pose_chart.data.datasets[2].data.length > 0)
@@ -347,7 +347,9 @@
             accel_chart.data.datasets[1].data = kpi_data.map(d => ({ x: (d.t), y: d.ay }));
             accel_chart.data.datasets[2].data = kpi_data.map(d => ({ x: (d.t), y: d.az }));
             accel_chart.update('none');
+        }
 
+        function updateLidar(lidar) {
             if(lidar){
                 lidar_chart.data.datasets[0].data = lidar.map(point => ({ x: point.x, y: point.y }));
                 lidar_chart.update('none'); // Disable animation for faster updates
@@ -356,11 +358,14 @@
 
         async function tick() {
             const data = await fetchData(300);
-            const lidar = await fetchLidar();
-            // console.log(data);
             updateCharts(data, lidar);
-            // Update charts with kpi_data
-            setTimeout(tick, 200); // Fetch new data every second
+            setTimeout(tick, 200); // 200ms
+        }
+
+        async function tick2() {
+            const lidar = await fetchLidar();
+            updateLidar(lidar);
+            setTimeout(tick2, 500); // 500ms
         }
 
         pose_canvas.onclick = (event) => {
@@ -388,6 +393,7 @@
         };
 
         tick();
+        tick2();
     </script>
 </body>
 
