@@ -303,6 +303,8 @@
                 ]
             },
             options: {
+                maintainAspectRatio: true,
+                aspectRatio: 1,
                 scales: {
                     x: { type: 'linear', min: -5, max: 5, position: 'bottom', title: { display: true, text: 'x (m)' }, ticks: { count: 11 } },
                     y: { min: -5, max: 5, title: { display: true, text: 'y (m)' }, ticks: { count: 11 }}
@@ -348,7 +350,7 @@
 
             if(lidar){
                 lidar_chart.data.datasets[0].data = lidar.map(point => ({ x: point.x, y: point.y }));
-                lidar_chart.update();
+                lidar_chart.update('none'); // Disable animation for faster updates
             }
         }
 
@@ -382,7 +384,7 @@
             });
 
             // Update the chart to display the new point
-            pose_chart.update();
+            pose_chart.update('none');
         };
 
         tick();
