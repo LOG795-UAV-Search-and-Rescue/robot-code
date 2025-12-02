@@ -408,10 +408,12 @@ class MapController():
         return pts
     
     def get_lidar_points_json(self) -> np.ndarray:
-        points = self.get_lidar_points_m()
         pts = []
-        for x, y in points:
-            pts.append({'x': float(x), 'y': float(y)})
+        for lidar_angle, lidar_distance in zip(self.base_ctrl.rl.lidar_angles_show, self.base_ctrl.rl.lidar_distances_show):
+            lidar_x = int(lidar_distance * np.cos(lidar_angle))
+            lidar_y = int(lidar_distance * np.sin(lidar_angle))
+            pts.append((lidar_x, lidar_y))
+
         return pts
 
     def get_map_points(self) -> np.ndarray:
