@@ -412,7 +412,7 @@ class MapController():
         for lidar_angle, lidar_distance in zip(self.base_ctrl.rl.lidar_angles_show, self.base_ctrl.rl.lidar_distances_show):
             lidar_x = int(lidar_distance * np.cos(lidar_angle))
             lidar_y = int(lidar_distance * np.sin(lidar_angle))
-            pts.append((lidar_x, lidar_y))
+            pts.append({'x': lidar_x, 'y':lidar_y})
 
         return pts
 
