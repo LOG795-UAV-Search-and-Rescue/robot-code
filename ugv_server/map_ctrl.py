@@ -406,6 +406,13 @@ class MapController():
         ys = distances_m * np.sin(angles)
         pts = np.column_stack((xs, ys))
         return pts
+    
+    def get_lidar_points_json(self) -> np.ndarray:
+        points = self.get_lidar_points_m()
+        pts = []
+        for x, y in points:
+            pts.append({'x': float(x), 'y': float(y)})
+        return pts
 
     def get_map_points(self) -> np.ndarray:
         return self.lidar_estimator.get_map()

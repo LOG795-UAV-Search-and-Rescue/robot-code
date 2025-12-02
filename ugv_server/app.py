@@ -285,7 +285,7 @@ def get_kpi():
 
 @app.route('/get_lidar', methods=['GET'])
 def get_lidar():
-    lidar_points = map_ctrl.get_lidar_points_m()
+    lidar_points = map_ctrl.get_lidar_points_json()
     return jsonify(lidar_points)
 
 @app.route('/graphs', methods=['GET'])
