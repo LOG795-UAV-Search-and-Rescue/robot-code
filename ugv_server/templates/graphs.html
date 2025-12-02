@@ -321,9 +321,7 @@
 
         function fetchLidar() {
             return fetch('/get_lidar')
-                .then(response => {
-                    response.json()
-                });
+                .then(response => response.json());
         }
 
         function updateCharts(data, lidar) {
