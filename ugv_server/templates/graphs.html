@@ -7,7 +7,6 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            height: 100vh;
         }
 
         h2 {
@@ -27,22 +26,22 @@
             grid-template-rows: repeat(2, 1fr);
             grid-column-gap: 0px;
             grid-row-gap: 0px;
-            height: 100%;
+            height: 100vh;
         }
 
-        .pose_container {
+        .top_left {
             grid-area: 1 / 1 / 2 / 2;
         }
 
-        .odom_container {
+        .top_right {
             grid-area: 1 / 2 / 2 / 3;
         }
 
-        .angle_container {
+        .bottom_left {
             grid-area: 2 / 1 / 3 / 2;
         }
 
-        .accel_container {
+        .bottom_right {
             grid-area: 2 / 2 / 3 / 3;
         }
     </style>
@@ -62,26 +61,34 @@
     </div>
 
     <div class="container">
-        <div class="pose_container">
+        <div class="top_left">
             <h3 id="pose-h" style="text-align: center;">Position</h3>
             <div style="margin: auto; width: 450px; height: 450px;"><canvas id="pose"></canvas></div>
         </div>
 
-        <div class="odom_container">
+        <div class="top_right">
             <h3 style="text-align: center;">Odometry (distance travelled)</h3>
             <canvas id="odometry"></canvas>
         </div>
 
-        <div class="angle_container">
+        <div class="bottom_left">
             <h3 style="text-align: center;">Angle Velocity</h3>
             <canvas id="angle"></canvas>
         </div>
 
-        <div class="accel_container">
+        <div class="bottom_right">
             <h3 style="text-align: center;">Acceleration</h3>
             <canvas id="accel"></canvas>
         </div>
     </div>
+
+    <div class="container">
+        <div class="top_left">
+            <h3 style="text-align: center;">LIDAR Scan</h3>
+            <canvas id="lidar"></canvas>
+        </div>
+    </div>
+
     <script>
         function radToDeg(rad) {
             return rad * (180 / Math.PI);
@@ -149,6 +156,7 @@
         const odometry_ctx = document.getElementById('odometry').getContext('2d');
         const angle_ctx = document.getElementById('angle').getContext('2d');
         const accel_ctx = document.getElementById('accel').getContext('2d');
+        const lidar_ctx = document.getElementById('lidar').getContext('2d');
 
         // Update your charts here using the kpi_data
         const pose_chart = new Chart(pose_ctx, {
@@ -158,7 +166,7 @@
                     {
                         label: 'Position',
                         borderColor: 'blue',
-                        pointBackgroundColor: 'blue',
+                        backgroundColor: 'blue',
                         pointRadius: 2,
                         borderWidth: 2,
                         fill: false,
@@ -175,7 +183,7 @@
                     {
                         label: 'Go to Points',
                         borderColor: 'green',
-                        pointBackgroundColor: 'green',
+                        backgroundColor: 'green',
                         pointRadius: 1,
                         borderWidth: 1,
                         fill: false,
@@ -283,6 +291,25 @@
             }
         });
 
+        const lidar_chart = new Chart(lidar_ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'LIDAR Scan',
+                        backgroundColor: 'blue',
+                        data: []
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    x: { type: 'linear', min: -5, max: 5, position: 'bottom', title: { display: true, text: 'x (m)' }, ticks: { count: 11 } },
+                    y: { min: -5, max: 5, title: { display: true, text: 'y (m)' }, ticks: { count: 11 }}
+                }
+            }
+        });
+
         function fetchData(n = 0) {
             if (n)
                 return fetch('/get_kpi?n=' + (n))
@@ -292,7 +319,12 @@
                 .then(response => response.json());
         }
 
-        function updateCharts(data) {
+        function fetchLidar() {
+            return fetch('/get_lidar')
+                .then(response => response.json());
+        }
+
+        function updateCharts(data, lidar) {
             pose_chart.data.datasets[0].data = [{ x: data.x, y: data.y }];
             pose_chart.data.datasets[1].data = [{ x: data.x, y: data.y }, { x: data.x + (0.5 * Math.cos(data.yaw)), y: data.y + (0.5 * Math.sin(data.yaw)) }];
             if (pose_chart.data.datasets[2].data.length > 0)
@@ -313,12 +345,16 @@
             accel_chart.data.datasets[1].data = kpi_data.map(d => ({ x: (d.t), y: d.ay }));
             accel_chart.data.datasets[2].data = kpi_data.map(d => ({ x: (d.t), y: d.az }));
             accel_chart.update();
+
+            lidar_chart.data.datasets[0].data = lidar.map(point => ({ x: point.x, y: point.y }));
+            lidar_chart.update();
         }
 
         async function tick() {
             const data = await fetchData(300);
-            console.log(data);
-            updateCharts(data);
+            const lidar = await fetchLidar();
+            // console.log(data);
+            updateCharts(data, lidar);
             // Update charts with kpi_data
             setTimeout(tick, 200); // Fetch new data every second
         }

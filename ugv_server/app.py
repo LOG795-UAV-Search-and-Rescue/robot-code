@@ -283,6 +283,11 @@ def get_kpi():
     x, y, yaw = map_ctrl.get_position()
     return jsonify({'x': x, 'y': y, 'yaw': yaw, 'kpi': kpi_data})
 
+@app.route('/get_lidar', methods=['GET'])
+def get_lidar():
+    lidar_points = map_ctrl.get_lidar_points_m()
+    return jsonify(lidar_points)
+
 @app.route('/graphs', methods=['GET'])
 def graphs():
     return render_template('graphs.html')
