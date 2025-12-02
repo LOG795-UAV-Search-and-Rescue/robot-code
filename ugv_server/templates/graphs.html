@@ -332,7 +332,7 @@
             if (pose_chart.data.datasets[2].data.length > 0)
                 pose_chart.data.datasets[2].data = [pose_chart.data.datasets[2].data[0], { x: data.x, y: data.y }];
 
-            pose_chart.update('none');
+            pose_chart.update();
             pose_h.innerText = `Position (x: ${data.x.toFixed(2)} m, y: ${data.y.toFixed(2)} m, yaw: ${radToDeg(data.yaw).toFixed(2)}°)`;
 
             const kpi_data = data.kpi;
