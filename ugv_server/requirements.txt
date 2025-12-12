@@ -1,0 +1,12 @@
+numpy==1.26.4
+pyserial
+flask
+flask_socketio
+aiortc
+opencv-python
+imutils
+mediapipe
+netifaces
+imageio
+pygame
+pyttsx3
